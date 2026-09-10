@@ -424,6 +424,7 @@ export default function App() {
         onClose={() => setIsDashboardOpen(false)}
         onLogout={handleLogout}
         onOpenUpgrade={() => setIsUpgradeOpen(true)}
+        onRefreshUser={(updated) => setUser(updated)}
       />
 
       {/* Top Up / Upgrade Pro Modal */}

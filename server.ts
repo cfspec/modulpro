@@ -788,6 +788,83 @@ app.get("/api/midtrans/status/:orderId", async (req, res) => {
   }
 });
 
+// 4. Endpoint: Check Latest Pending Trans untuk User (Mencegah kendala kehilangan notification webhook)
+app.get("/api/midtrans/status/latest", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: "Database Admin not initialized" });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+
+    // Ambil daftar transaksi pending teranyar
+    const { data: pendingTxs, error: dbError } = await supabaseAdmin
+      .from('midtrans_transactions')
+      .select('*')
+      .eq('email', cleanEmail)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (dbError || !pendingTxs || pendingTxs.length === 0) {
+      return res.json({ success: false, status: 'none', message: "Tidak ada transaksi pending." });
+    }
+
+    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
+    const base64Key = Buffer.from(serverKey + ":").toString("base64");
+
+    // Loop & cek status masing-masing di Midtrans
+    for (const tx of pendingTxs) {
+      const orderId = tx.order_id;
+      const statusUrl = isProduction
+        ? `https://api.midtrans.com/v2/${orderId}/status`
+        : `https://api.sandbox.midtrans.com/v2/${orderId}/status`;
+
+      try {
+        const response = await fetch(statusUrl, {
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": `Basic ${base64Key}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const { transaction_status, fraud_status } = data;
+
+          const isSuccess =
+            transaction_status === "settlement" ||
+            (transaction_status === "capture" && fraud_status === "accept");
+
+          if (isSuccess) {
+            const credited = await handlePaymentSuccess(orderId, cleanEmail);
+            return res.json({ success: true, status: transaction_status, credited, orderId });
+          } else if (transaction_status !== 'pending') {
+            // Update status non-pending di database agar tidak dicheck terus-menerus
+            await supabaseAdmin
+              .from('midtrans_transactions')
+              .update({ status: transaction_status })
+              .eq('order_id', orderId);
+          }
+        }
+      } catch (err) {
+        console.warn(`Gagal mencocokkan status order ${orderId} dari Midtrans:`, err);
+      }
+    }
+
+    res.json({ success: false, status: 'pending', message: "Transaksi masih pending." });
+  } catch (error: any) {
+    console.error("Latest status check error:", error);
+    res.status(500).json({ error: "Terjadi kesalahan internal" });
+  }
+});
+
 export { app };
 
 // Start Express Server with Vite integration

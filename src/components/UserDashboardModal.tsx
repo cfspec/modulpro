@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
-import { X, User, ShieldCheck, Sparkles, BookOpen, FileText, HelpCircle, LogOut, Zap, Database, Copy, Check, Shield } from 'lucide-react';
-import { checkUserProfilesTableReady, USER_PROFILES_SETUP_SQL } from '../lib/userStore';
+import { X, User, ShieldCheck, Sparkles, BookOpen, FileText, HelpCircle, LogOut, Zap, Database, Copy, Check, Shield, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import { checkUserProfilesTableReady, USER_PROFILES_SETUP_SQL, getUserProfileFromCloud } from '../lib/userStore';
+import { supabase } from '../supabaseClient';
 
 interface UserDashboardModalProps {
   user: UserProfile;
@@ -9,6 +10,7 @@ interface UserDashboardModalProps {
   onClose: () => void;
   onLogout: () => void;
   onOpenUpgrade: () => void;
+  onRefreshUser?: (updated: UserProfile) => void;
 }
 
 export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
@@ -17,10 +19,13 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
   onClose,
   onLogout,
   onOpenUpgrade,
+  onRefreshUser,
 }) => {
   const [showSqlModal, setShowSqlModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isTableReady, setIsTableReady] = useState<boolean | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +47,41 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
     navigator.clipboard.writeText(USER_PROFILES_SETUP_SQL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleSyncPendingPayments = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/midtrans/status/latest?email=${user.email}`);
+      if (!response.ok) {
+        throw new Error("Gagal memeriksa status terbaru.");
+      }
+      const data = await response.json();
+      if (data.success) {
+        // Refresh profile dari cloud
+        if (supabase) {
+          const { data: { user: sUser } } = await supabase.auth.getUser();
+          if (sUser) {
+            const updatedProfile = await getUserProfileFromCloud(sUser);
+            if (onRefreshUser) {
+              onRefreshUser(updatedProfile);
+            }
+          }
+        }
+        setSyncMessage("Sukses! Pembayaran tertunda Anda berhasil diverifikasi dan kuota telah ditambahkan!");
+      } else if (data.status === 'pending') {
+        setSyncMessage("Pembayaran Anda masih dalam status 'pending' di Midtrans. Silakan selesaikan pembayaran QRIS terlebih dahulu.");
+      } else {
+        setSyncMessage("Tidak ada transaksi pending yang ditemukan untuk akun Anda.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setSyncMessage("Terjadi masalah saat mensinkronisasikan pembayaran.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -83,7 +123,27 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
               <Zap className="w-4 h-4 text-amber-400" />
               Sisa Kuota
             </h3>
+            <button
+              onClick={handleSyncPendingPayments}
+              disabled={isSyncing}
+              className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+              title="Sinkronkan transaksi jika kuota belum bertambah"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5" />
+              )}
+              <span>{isSyncing ? "Mensinkronkan..." : "Sinkronkan Pembayaran"}</span>
+            </button>
           </div>
+
+          {syncMessage && (
+            <div className="mb-3 bg-blue-950/50 border border-blue-500/25 p-3 rounded-xl text-xs flex items-start gap-2 text-blue-300 animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <span>{syncMessage}</span>
+            </div>
+          )}
 
           <div className="space-y-4 bg-[#182033] border border-gray-700/80 rounded-2xl p-4">
             
