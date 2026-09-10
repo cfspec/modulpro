@@ -3,11 +3,23 @@ import cors from "cors";
 import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
 dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+
+// Initialize Supabase Admin Client
+const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://wplkhcelcqehosnyiluz.supabase.co";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAdmin = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  }
+}) : null;
 
 // Enable CORS for all routes to support external requests from Netlify
 app.use(cors());
@@ -506,6 +518,273 @@ Sajikan output dalam format JSON dengan struktur:
   } catch (error: any) {
     console.error("Error generating Soal HOTS:", error);
     res.status(500).json({ error: formatGeminiError(error, "Gagal membuat Paket Soal.") });
+  }
+});
+
+// Helper to credit quota on successful payment
+async function handlePaymentSuccess(orderId: string, email: string) {
+  if (!supabaseAdmin) {
+    console.error("Supabase Admin client not initialized.");
+    return false;
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+
+  // Prevent double crediting using midtrans_transactions table if it exists
+  try {
+    const { data: existingTx } = await supabaseAdmin
+      .from('midtrans_transactions')
+      .select('*')
+      .eq('order_id', orderId)
+      .maybeSingle();
+
+    if (existingTx && (existingTx.status === 'settlement' || existingTx.status === 'capture')) {
+      console.log(`Transaction ${orderId} already processed.`);
+      return true;
+    }
+  } catch (txErr) {
+    console.warn("Could not check midtrans_transactions:", txErr);
+  }
+
+  // Get current profile
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('user_profiles')
+    .select('*')
+    .eq('email', cleanEmail)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    console.error(`User profile not found for email ${cleanEmail}:`, profileError);
+    return false;
+  }
+
+  // Update profile adding 15 of each quota
+  const updated = {
+    modul_ajar: (profile.modul_ajar || 0) + 15,
+    max_modul_ajar: (profile.max_modul_ajar || 0) + 15,
+    lkpd: (profile.lkpd || 0) + 15,
+    max_lkpd: (profile.max_lkpd || 0) + 15,
+    soal_hots: (profile.soal_hots || 0) + 15,
+    max_soal_hots: (profile.max_soal_hots || 0) + 15,
+    status_plan: 'Pro Member',
+    updated_at: new Date().toISOString()
+  };
+
+  const { error: updateError } = await supabaseAdmin
+    .from('user_profiles')
+    .update(updated)
+    .eq('email', cleanEmail);
+
+  if (updateError) {
+    console.error(`Failed to update user quota for ${cleanEmail}:`, updateError);
+    return false;
+  }
+
+  // Record/Upsert to midtrans_transactions log table
+  try {
+    await supabaseAdmin
+      .from('midtrans_transactions')
+      .upsert({
+        order_id: orderId,
+        email: cleanEmail,
+        amount: 25000,
+        status: 'settlement',
+        created_at: new Date().toISOString()
+      });
+  } catch (txErr) {
+    console.warn("Could not write transaction log to midtrans_transactions table:", txErr);
+  }
+
+  console.log(`Successfully credited 45 premium quota to ${cleanEmail} for order ${orderId}`);
+  return true;
+}
+
+// 1. Endpoint: Create Midtrans Transaction
+app.post("/api/midtrans/create-transaction", async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const orderId = `MDT-GURU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
+    
+    const snapUrl = isProduction
+      ? "https://app.midtrans.com/snap/v1/transactions"
+      : "https://app.sandbox.midtrans.com/snap/v1/transactions";
+
+    const base64Key = Buffer.from(serverKey + ":").toString("base64");
+
+    const payload = {
+      transaction_details: {
+        order_id: orderId,
+        gross_amount: 25000
+      },
+      item_details: [
+        {
+          id: "PRO_45",
+          price: 25000,
+          quantity: 1,
+          name: "Paket Kuota Pro (45 Kuota Premium)"
+        }
+      ],
+      customer_details: {
+        first_name: name || email.split("@")[0],
+        email: email
+      },
+      enabled_payments: ["qris"],
+      custom_field1: email,
+      custom_field2: "add_quota_pro_45"
+    };
+
+    const response = await fetch(snapUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Basic ${base64Key}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Midtrans Snap API error:", errText);
+      return res.status(response.status).json({ error: "Gagal membuat transaksi ke Midtrans" });
+    }
+
+    const data = await response.json();
+    
+    // Save to midtrans_transactions log table as 'pending'
+    if (supabaseAdmin) {
+      try {
+        await supabaseAdmin
+          .from('midtrans_transactions')
+          .upsert({
+            order_id: orderId,
+            email: email.toLowerCase().trim(),
+            amount: 25000,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+      } catch (txErr) {
+        console.warn("Could not log pending transaction:", txErr);
+      }
+    }
+
+    res.json({
+      token: data.token,
+      redirectUrl: data.redirect_url,
+      clientKey: process.env.MIDTRANS_CLIENT_KEY || "",
+      isProduction
+    });
+
+  } catch (error: any) {
+    console.error("Create transaction error:", error);
+    res.status(500).json({ error: "Terjadi kesalahan internal." });
+  }
+});
+
+// 2. Endpoint: Midtrans Notification Webhook
+app.post("/api/midtrans/notification", async (req, res) => {
+  try {
+    const notification = req.body;
+    const { order_id, transaction_status, fraud_status, custom_field1 } = notification;
+
+    console.log(`Midtrans notification received for order: ${order_id}, status: ${transaction_status}`);
+
+    // Verify signature
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
+    const statusCode = notification.status_code;
+    const grossAmount = notification.gross_amount;
+    const signatureKey = notification.signature_key;
+
+    const calculated = crypto
+      .createHash("sha512")
+      .update(`${order_id}${statusCode}${grossAmount}${serverKey}`)
+      .digest("hex");
+
+    if (calculated !== signatureKey) {
+      console.warn("Invalid signature key for Midtrans notification");
+      return res.status(403).json({ error: "Invalid signature" });
+    }
+
+    // Save transaction status
+    if (supabaseAdmin) {
+      try {
+        await supabaseAdmin
+          .from('midtrans_transactions')
+          .upsert({
+            order_id,
+            email: custom_field1 ? custom_field1.toLowerCase().trim() : "unknown",
+            amount: Math.round(Number(grossAmount)),
+            status: transaction_status,
+            created_at: new Date().toISOString()
+          });
+      } catch (txErr) {
+        console.warn("Could not update transaction log in webhook:", txErr);
+      }
+    }
+
+    // Process successful payments
+    const isSuccess =
+      transaction_status === "settlement" ||
+      (transaction_status === "capture" && fraud_status === "accept");
+
+    if (isSuccess && custom_field1) {
+      await handlePaymentSuccess(order_id, custom_field1);
+    }
+
+    res.json({ status: "OK" });
+  } catch (error: any) {
+    console.error("Notification Webhook error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// 3. Endpoint: Check Midtrans Status directly with Midtrans API (Polling/Verify)
+app.get("/api/midtrans/status/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
+
+    const statusUrl = isProduction
+      ? `https://api.midtrans.com/v2/${orderId}/status`
+      : `https://api.sandbox.midtrans.com/v2/${orderId}/status`;
+
+    const base64Key = Buffer.from(serverKey + ":").toString("base64");
+
+    const response = await fetch(statusUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Basic ${base64Key}`
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Gagal memeriksa status ke Midtrans" });
+    }
+
+    const data = await response.json();
+    const { transaction_status, fraud_status, custom_field1 } = data;
+
+    const isSuccess =
+      transaction_status === "settlement" ||
+      (transaction_status === "capture" && fraud_status === "accept");
+
+    if (isSuccess && custom_field1) {
+      const credited = await handlePaymentSuccess(orderId, custom_field1);
+      return res.json({ success: true, status: transaction_status, credited });
+    }
+
+    res.json({ success: false, status: transaction_status });
+  } catch (error: any) {
+    console.error("Check status error:", error);
+    res.status(500).json({ error: "Terjadi kesalahan internal" });
   }
 });
 

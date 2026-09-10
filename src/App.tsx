@@ -428,6 +428,7 @@ export default function App() {
 
       {/* Top Up / Upgrade Pro Modal */}
       <UpgradeModal
+        user={user}
         isOpen={isUpgradeOpen}
         onClose={() => setIsUpgradeOpen(false)}
         onAddQuota={handleAddQuota}

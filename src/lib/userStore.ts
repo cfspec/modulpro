@@ -113,7 +113,25 @@ SELECT
   COALESCE((raw_user_meta_data->'quota'->>'soalHots')::int, 0),
   COALESCE((raw_user_meta_data->'quota'->>'maxSoalHots')::int, 0)
 FROM auth.users
-ON CONFLICT (email) DO NOTHING;`;
+ON CONFLICT (email) DO NOTHING;
+
+-- 7. BUAT TABEL TRANSAKSI MIDTRANS UNTUK VERIFIKASI PENDING & TRANSAKSI LUNAS
+CREATE TABLE IF NOT EXISTS public.midtrans_transactions (
+    order_id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 8. AKTIFKAN RLS UNTUK TRANSAKSI MIDTRANS
+ALTER TABLE public.midtrans_transactions ENABLE ROW LEVEL SECURITY;
+
+-- 9. KEBIJAKAN KEAMANAN: Pengguna hanya bisa melihat riwayat transaksi mereka sendiri
+DROP POLICY IF EXISTS "Users can view own transactions" ON public.midtrans_transactions;
+CREATE POLICY "Users can view own transactions" 
+ON public.midtrans_transactions FOR SELECT 
+USING (email = auth.jwt() ->> 'email');`;
 
 /**
  * Cek apakah tabel user_profiles sudah dibuat di Supabase
