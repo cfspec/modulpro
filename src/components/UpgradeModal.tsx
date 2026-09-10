@@ -6,6 +6,7 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddQuota: (amountModul: number, amountLKPD: number, amountHOTS: number) => void;
+  onOpenTerms?: () => void;
 }
 
 const singlePackage: PaymentPackage = {
@@ -27,9 +28,10 @@ const singlePackage: PaymentPackage = {
   ],
 };
 
-export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onAddQuota }) => {
+export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onAddQuota, onOpenTerms }) => {
   const [paymentStep, setPaymentStep] = useState<'details' | 'midtrans' | 'success'>('details');
   const [selectedMethod, setSelectedMethod] = useState<'qris' | 'va_bca' | 'gopay' | 'va_mandiri'>('qris');
+  const [hasAgreed, setHasAgreed] = useState(false);
 
   if (!isOpen) return null;
 
@@ -127,10 +129,47 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onA
                 </span>
               </div>
 
+              {/* Terms & Refund Policy Box */}
+              <div className="mt-4 bg-[#0c101b] border border-gray-800 rounded-xl p-3.5 space-y-2.5">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Ketentuan Penting & Kebijakan Refund
+                </p>
+                <p className="text-[10.5px] text-gray-400 leading-relaxed">
+                  Kuota tidak hangus. Refund ganda/gagal sistem diproses 1x24 jam. Klaim kendala wajib mengirimkan bukti transfer asli dan <strong className="text-gray-300">foto layar monitor utuh</strong> (bukan screenshot biasa) melalui WhatsApp Customer Care.
+                </p>
+                {onOpenTerms && (
+                  <button
+                    type="button"
+                    onClick={onOpenTerms}
+                    className="text-[10.5px] text-blue-400 hover:text-blue-300 underline underline-offset-2 font-semibold transition inline-block cursor-pointer text-left"
+                  >
+                    Baca Selengkapnya Kebijakan Pembelian & Refund Lengkap →
+                  </button>
+                )}
+                
+                <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hasAgreed}
+                    onChange={(e) => setHasAgreed(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-gray-700 text-blue-600 focus:ring-blue-500 bg-gray-900 cursor-pointer shrink-0"
+                  />
+                  <span className="text-[11px] text-gray-300 leading-normal">
+                    Saya memahami dan menyetujui seluruh <strong className="text-amber-400">Kebijakan Pembelian & Pengembalian Dana</strong> di atas.
+                  </span>
+                </label>
+              </div>
+
               <button
                 type="button"
+                disabled={!hasAgreed}
                 onClick={() => setPaymentStep('midtrans')}
-                className="w-full mt-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer transition"
+                className={`w-full mt-4 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition ${
+                  hasAgreed
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/30 cursor-pointer'
+                    : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
+                }`}
               >
                 <span>Bayar Sekarang — Rp 25.000</span>
                 <ArrowRight className="w-4 h-4" />

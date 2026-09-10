@@ -153,7 +153,7 @@ export default function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
-  const [legalTab, setLegalTab] = useState<'disclaimer' | 'privacy'>('disclaimer');
+  const [legalTab, setLegalTab] = useState<'disclaimer' | 'privacy' | 'refund'>('disclaimer');
 
   useEffect(() => {
     if (user) {
@@ -431,6 +431,10 @@ export default function App() {
         isOpen={isUpgradeOpen}
         onClose={() => setIsUpgradeOpen(false)}
         onAddQuota={handleAddQuota}
+        onOpenTerms={() => {
+          setLegalTab('refund');
+          setIsLegalOpen(true);
+        }}
       />
 
       {/* Legal & Privacy Policy Modal */}
@@ -457,13 +461,13 @@ export default function App() {
       <footer className="no-print border-t border-gray-800/80 bg-[#06080e] py-6 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© 2026 CF Digitals - All Rights Reserved.</p>
-          <div className="flex items-center gap-4 text-gray-400">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-gray-400">
             <span
               onClick={() => {
                 setLegalTab('disclaimer');
                 setIsLegalOpen(true);
               }}
-              className="hover:text-white cursor-pointer underline underline-offset-2"
+              className="hover:text-white cursor-pointer underline underline-offset-2 transition"
             >
               Disclaimer
             </span>
@@ -473,14 +477,24 @@ export default function App() {
                 setLegalTab('privacy');
                 setIsLegalOpen(true);
               }}
-              className="hover:text-white cursor-pointer underline underline-offset-2"
+              className="hover:text-white cursor-pointer underline underline-offset-2 transition"
             >
               Kebijakan Privasi
             </span>
             <span>•</span>
             <span
+              onClick={() => {
+                setLegalTab('refund');
+                setIsLegalOpen(true);
+              }}
+              className="hover:text-white cursor-pointer underline underline-offset-2 font-semibold text-amber-400 hover:text-amber-300 transition"
+            >
+              Kebijakan Pembelian & Refund
+            </span>
+            <span>•</span>
+            <span
               onClick={() => setIsUpgradeOpen(true)}
-              className="hover:text-white cursor-pointer"
+              className="hover:text-white cursor-pointer hover:underline transition"
             >
               Membership Pro
             </span>
