@@ -634,7 +634,7 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
         first_name: name || email.split("@")[0],
         email: email
       },
-      enabled_payments: ["qris"],
+      // Hapus pembatasan enabled_payments agar otomatis menampilkan semua metode pembayaran aktif di dashboard Midtrans Anda
       custom_field1: email,
       custom_field2: "add_quota_pro_45"
     };
