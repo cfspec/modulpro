@@ -61,6 +61,7 @@ const loadSnapScript = (isProduction: boolean, clientKey: string): Promise<void>
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClose, onAddQuota, onOpenTerms }) => {
   const [paymentStep, setPaymentStep] = useState<'details' | 'loading' | 'pending' | 'success'>('details');
   const [orderId, setOrderId] = useState<string>('');
+  const [redirectUrl, setRedirectUrl] = useState<string>('');
   const [hasAgreed, setHasAgreed] = useState(false);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -96,10 +97,15 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
       }
 
       const data = await response.json();
-      const { token, clientKey, isProduction } = data;
+      const { token, clientKey, isProduction, redirectUrl: rUrl } = data;
+      setRedirectUrl(rUrl || '');
 
       // 1. Load Snap Script
-      await loadSnapScript(isProduction, clientKey);
+      try {
+        await loadSnapScript(isProduction, clientKey);
+      } catch (scriptErr) {
+        console.warn("Gagal memuat snap script secara langsung. Akan menggunakan direct redirect.", scriptErr);
+      }
 
       // 2. Open Snap Pay
       // @ts-ignore
@@ -132,6 +138,13 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
             setIsLoadingPayment(false);
           }
         });
+      } else if (rUrl) {
+        // Fallback langsung buka link pembayaran di tab baru jika script Snap terblokir / gagal dimuat
+        console.log("Snap library tidak termuat, mengalihkan ke redirect URL:", rUrl);
+        setOrderId(token);
+        setPaymentStep('pending');
+        setIsLoadingPayment(false);
+        window.open(rUrl, '_blank');
       } else {
         throw new Error("Snap library tidak termuat.");
       }
@@ -360,6 +373,19 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
             )}
 
             <div className="space-y-2.5">
+              {redirectUrl && (
+                <a
+                  href={redirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm py-3.5 rounded-xl flex items-center justify-center gap-2 transition cursor-pointer text-center"
+                >
+                  <QrCode className="w-5 h-5" />
+                  <span>KLIK DI SINI UNTUK SCAN / BAYAR QRIS</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              )}
+
               <button
                 onClick={checkPaymentStatus}
                 disabled={checkingStatus}
