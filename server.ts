@@ -42,12 +42,9 @@ const getGeminiClient = () => {
   });
 };
 
-// Candidate models in order of priority
+// Candidate models in order of priority (strictly gemini-3.5-flash as requested)
 const CANDIDATE_MODELS = [
-  "gemini-3.8-flash",
-  "gemini-3.1-flash-lite",
-  "gemini-flash-latest",
-  "gemini-3.1-pro-preview",
+  "gemini-3.5-flash"
 ];
 
 async function generateContentWithFallback(
