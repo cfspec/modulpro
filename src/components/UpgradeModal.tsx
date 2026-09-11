@@ -11,10 +11,10 @@ interface UpgradeModalProps {
 }
 
 const singlePackage: PaymentPackage = {
-  id: 'pkg_pro_25k',
+  id: 'pkg_pro_35k',
   name: 'Paket Pro Top Up Guru',
-  price: 25000,
-  priceLabel: 'Rp 25.000',
+  price: 35000,
+  priceLabel: 'Rp 35.000',
   quotaModul: 15,
   quotaLKPD: 15,
   quotaHOTS: 15,
@@ -25,7 +25,7 @@ const singlePackage: PaymentPackage = {
     '15x Generate & Download Soal HOTS',
     'Akses Kunci Jawaban & Rubrik Penilaian',
     'Export Format Word (.doc) & PDF Pro',
-    'Diproses Instan via Midtrans Payment Gateway (QRIS Only)',
+    'Diproses Instan via Midtrans (QRIS & E-Wallet)',
   ],
 };
 
@@ -275,10 +275,10 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
               <div className="flex items-center justify-between text-xs text-gray-400 bg-[#101524] p-3 rounded-xl border border-gray-800">
                 <div className="flex items-center gap-2">
                   <QrCode className="w-4 h-4 text-blue-400" />
-                  <span>Metode Pembayaran Resmi: <strong className="text-emerald-400 font-bold">QRIS</strong></span>
+                  <span>Metode Pembayaran: <strong className="text-emerald-400 font-bold">QRIS & E-Wallet</strong></span>
                 </div>
                 <span className="text-[10px] bg-emerald-900/30 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/20">
-                  Instant QRIS
+                  Instan & Otomatis
                 </span>
               </div>
 
@@ -324,7 +324,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
                     : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                <span>Bayar Sekarang (QRIS) — Rp 25.000</span>
+                <span>Bayar Sekarang (QRIS) — Rp 35.000</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -360,7 +360,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
               <ol className="space-y-2.5 text-xs text-gray-400 list-decimal pl-4">
                 <li>Buka pop-up pembayaran Snap Midtrans (jika tertutup, silakan klik tombol <strong>Buka Ulang Gerbang Snap</strong>).</li>
                 <li>Pindai (scan) kode QRIS yang tampil di layar menggunakan GoPay, OVO, Dana, LinkAja, BCA Mobile, atau aplikasi bank lain.</li>
-                <li>Selesaikan transaksi sebesar <strong className="text-white">Rp 25.000</strong> di aplikasi e-wallet / m-banking Anda.</li>
+                <li>Selesaikan transaksi sebesar <strong className="text-white">Rp 35.000</strong> di aplikasi e-wallet / m-banking Anda.</li>
                 <li>Setelah Anda melihat konfirmasi pembayaran berhasil di aplikasi Anda, silakan kembali ke halaman ini dan klik tombol <strong className="text-emerald-400">Verifikasi Pembayaran</strong> di bawah.</li>
               </ol>
             </div>

@@ -584,7 +584,7 @@ async function handlePaymentSuccess(orderId: string, email: string) {
       .upsert({
         order_id: orderId,
         email: cleanEmail,
-        amount: 25000,
+        amount: 35000,
         status: 'settlement',
         created_at: new Date().toISOString()
       });
@@ -617,12 +617,12 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
     const payload = {
       transaction_details: {
         order_id: orderId,
-        gross_amount: 25000
+        gross_amount: 35000
       },
       item_details: [
         {
           id: "PRO_45",
-          price: 25000,
+          price: 35000,
           quantity: 1,
           name: "Paket Kuota Pro (45 Kuota Premium)"
         }
@@ -631,7 +631,8 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
         first_name: name || email.split("@")[0],
         email: email
       },
-      // Hapus pembatasan enabled_payments agar otomatis menampilkan semua metode pembayaran aktif di dashboard Midtrans Anda
+      // Batasi hanya menerima QRIS, GoPay, ShopeePay, Dana, dan OVO
+      enabled_payments: ["qris", "gopay", "shopeepay", "dana", "ovo"],
       custom_field1: email,
       custom_field2: "add_quota_pro_45"
     };
@@ -662,7 +663,7 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
           .upsert({
             order_id: orderId,
             email: email.toLowerCase().trim(),
-            amount: 25000,
+            amount: 35000,
             status: 'pending',
             created_at: new Date().toISOString()
           });
