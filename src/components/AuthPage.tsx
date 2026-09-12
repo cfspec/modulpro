@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { getUserProfileFromCloud } from '../lib/userStore';
+import { LegalModal } from './LegalModal';
 
 // Menggunakan client Supabase dari src/supabaseClient.js
 // @ts-ignore
@@ -50,6 +51,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Legal modal states
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
+  const [legalTab, setLegalTab] = useState<'disclaimer' | 'privacy' | 'refund'>('disclaimer');
 
   // Periksa URL jika pengguna datang dari pendaftaran atau dari link recovery di email
   useEffect(() => {
@@ -663,6 +668,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         )}
 
       </div>
+
+      {/* Legal Links Footer */}
+      <div className="mt-6 text-center text-[11px] text-gray-500 space-x-2.5 relative z-10">
+        <button 
+          type="button"
+          onClick={() => { setLegalTab('disclaimer'); setIsLegalOpen(true); }}
+          className="hover:text-gray-300 underline transition cursor-pointer"
+        >
+          Disclaimer
+        </button>
+        <span>•</span>
+        <button 
+          type="button"
+          onClick={() => { setLegalTab('privacy'); setIsLegalOpen(true); }}
+          className="hover:text-gray-300 underline transition cursor-pointer"
+        >
+          Kebijakan Privasi
+        </button>
+        <span>•</span>
+        <button 
+          type="button"
+          onClick={() => { setLegalTab('refund'); setIsLegalOpen(true); }}
+          className="hover:text-gray-300 underline transition cursor-pointer"
+        >
+          Kebijakan Refund & Pembelian
+        </button>
+      </div>
+
+      <LegalModal 
+        isOpen={isLegalOpen} 
+        onClose={() => setIsLegalOpen(false)} 
+        defaultTab={legalTab} 
+      />
     </div>
   );
 };
