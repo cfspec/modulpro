@@ -166,7 +166,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, default
                 <span className="text-blue-500">1.</span> Sistem Pembelian & Kuota Premium
               </h3>
               <p>
-                <strong>Paket Kuota Pro:</strong> Pembayaran tunggal sebesar <strong>Rp 25.000</strong> akan memberikan pengguna total <strong>45 Kuota Premium</strong> yang terdiri dari:
+                <strong>Paket Kuota Pro:</strong> Pembayaran tunggal sebesar <strong>Rp 35.000</strong> akan memberikan pengguna total <strong>45 Kuota Premium</strong> yang terdiri dari:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-gray-300">
                 <li><strong>15 kali</strong> proses generate Modul Ajar Kurikulum Merdeka.</li>

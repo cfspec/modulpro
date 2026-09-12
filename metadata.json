@@ -1,6 +1,6 @@
 {
-  "name": "Remix Generator MODUL AJAR PRO duplikat",
-  "description": "Aplikasi Generator LKPD Interaktif Kurikulum Merdeka berbasis AI, dilengkapi Modul Ajar dan Soal HOTS.",
+  "name": "Generator Modul Ajar Pro",
+  "description": "Generator Modul Ajar, LKPD Interaktif, dan Soal HOTS Kurikulum Merdeka Tercepat berbasis AI untuk Guru Indonesia.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
