@@ -6,18 +6,11 @@ import {
   ShieldCheck, 
   QrCode, 
   ArrowRight, 
-  CheckCircle2, 
-  Loader2, 
-  AlertCircle, 
-  RefreshCw,
-  Copy,
-  ExternalLink,
-  Clock
+  Copy, 
+  ExternalLink, 
+  Clock 
 } from 'lucide-react';
 import { PaymentPackage, UserProfile } from '../types';
-// @ts-ignore
-import { supabase } from '../supabaseClient';
-import { getUserProfileFromCloud } from '../lib/userStore';
 
 interface UpgradeModalProps {
   user: UserProfile | null;
@@ -57,31 +50,18 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" 
   </svg>
 );
 
-export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClose, onRefreshUser, onOpenTerms }) => {
-  const [paymentStep, setPaymentStep] = useState<'details' | 'pending_whatsapp' | 'success'>('details');
+export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClose, onOpenTerms }) => {
+  const [paymentStep, setPaymentStep] = useState<'details' | 'pending_whatsapp'>('details');
   const [hasAgreed, setHasAgreed] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-  // Rekam snapshot kuota saat modal dibuka untuk perbandingan yang ketat & aman
-  const [initialQuota, setInitialQuota] = useState<{ modul: number; lkpd: number; hots: number }>({
-    modul: 0,
-    lkpd: 0,
-    hots: 0,
-  });
 
   useEffect(() => {
-    if (isOpen && user) {
-      setInitialQuota({
-        modul: user.quota.modulAjar || 0,
-        lkpd: user.quota.lkpd || 0,
-        hots: user.quota.soalHots || 0,
-      });
+    if (isOpen) {
       setPaymentStep('details');
-      setStatusMessage(null);
+      setHasAgreed(false);
+      setCopiedMessage(false);
     }
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -113,61 +93,12 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
     const waUrl = getWhatsAppUrl();
     window.open(waUrl, '_blank');
     setPaymentStep('pending_whatsapp');
-    setStatusMessage(null);
   };
 
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(buildWhatsAppMessage());
     setCopiedMessage(true);
     setTimeout(() => setCopiedMessage(false), 2500);
-  };
-
-  // HANYA MEMBACA (READ-ONLY) DARI SUPABASE. TIDAK BISA MENAMBAH KUOTA SENDIRI!
-  const handleCheckQuotaUpdated = async () => {
-    setCheckingStatus(true);
-    setStatusMessage(null);
-    try {
-      if (!supabase) {
-        setStatusMessage("Silakan segarkan halaman browser untuk mengecek kuota terbaru.");
-        return;
-      }
-
-      const { data: { user: sUser } } = await supabase.auth.getUser();
-      if (!sUser) {
-        setStatusMessage("Sesi login tidak ditemukan. Silakan segarkan halaman atau masuk kembali.");
-        return;
-      }
-
-      // Ambil data profil dari database Supabase (hasil input Admin)
-      const updatedProfile = await getUserProfileFromCloud(sUser);
-
-      // Verifikasi apakah Admin SUDAH benar-benar menambah angka kuota di Supabase
-      const isRealAdditionByAdmin = 
-        updatedProfile.quota.modulAjar > initialQuota.modul ||
-        updatedProfile.quota.lkpd > initialQuota.lkpd ||
-        updatedProfile.quota.soalHots > initialQuota.hots;
-
-      if (isRealAdditionByAdmin) {
-        // HANYA sinkronkan data profil yang sudah diubah Admin di Supabase
-        if (onRefreshUser) {
-          onRefreshUser(updatedProfile);
-        }
-        setPaymentStep('success');
-      } else {
-        // Jika belum ada penambahan dari Admin di Supabase:
-        setStatusMessage("⚠️ Kuota belum ditambahkan oleh Admin di sistem. Pastikan Anda telah mengirim bukti transfer ke WhatsApp 0877-2637-8446 dan menunggu konfirmasi Admin.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setStatusMessage("Terjadi kendala saat memeriksa kuota ke server. Anda juga bisa langsung memuat ulang (refresh) halaman.");
-    } finally {
-      setCheckingStatus(false);
-    }
-  };
-
-  const handleFinish = () => {
-    setPaymentStep('details');
-    onClose();
   };
 
   return (
@@ -265,7 +196,7 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 <ol className="list-decimal pl-4 space-y-1.5 text-gray-400 text-[11px] leading-relaxed">
                   <li>Klik tombol <strong className="text-emerald-400">Pesan via WhatsApp</strong> di bawah untuk membuka chat dengan pesan otomatis.</li>
                   <li>Admin akan membalas dengan mengirimkan barcode <strong className="text-white">QRIS</strong> resmi (Bisa dibayar via GoPay, OVO, Dana, ShopeePay, BCA, BRI, Mandiri, dll).</li>
-                  <li>Kirim bukti bayar ke WhatsApp Admin, kuota <strong className="text-emerald-400">45 kuota Pro</strong> akan langsung diaktifkan ke akun Anda di server!</li>
+                  <li>Kirim bukti bayar ke WhatsApp Admin, kuota <strong className="text-emerald-400">45 kuota Pro</strong> akan langsung diaktifkan oleh Admin ke akun Anda di database!</li>
                 </ol>
               </div>
 
@@ -343,26 +274,19 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                   Pastikan pesan pemesanan yang otomatis terbuat sudah Anda <strong>Kirim</strong> di aplikasi WhatsApp ke Admin.
                 </li>
                 <li>
-                  Admin akan membalas dengan gambar kode <strong>QRIS</strong> pembayaran resmi senilai <strong>Rp 35.000</strong>.
+                  Admin akan membalas dengan gambar barcode <strong>QRIS</strong> pembayaran resmi senilai <strong>Rp 35.000</strong>.
                 </li>
                 <li>
                   Pindai & bayar melalui e-wallet pilihan Anda (GoPay, OVO, Dana, ShopeePay) atau m-Banking (BCA, BRI, Mandiri, BNI, dll).
                 </li>
                 <li>
-                  Kirimkan <strong>foto / struk bukti transfer</strong> ke Admin di WhatsApp.
+                  Kirimkan <strong>foto / tangkapan layar bukti transfer</strong> ke Admin di WhatsApp.
                 </li>
                 <li>
-                  Setelah Admin mengonfirmasi di WhatsApp bahwa kuota Anda sudah ditambahkan, klik tombol <strong>Cek Kuota dari Server</strong> di bawah untuk memperbarui tampilan Anda.
+                  Setelah Admin mengonfirmasi di WhatsApp bahwa kuota Anda telah aktif, Anda dapat langsung melihat kuota baru Anda di <strong className="text-blue-400">Dashboard Profil (menu Sisa Kuota ➔ Sinkronkan Kuota)</strong> atau cukup muat ulang (refresh) halaman website ini.
                 </li>
               </ol>
             </div>
-
-            {statusMessage && (
-              <div className="mb-5 bg-amber-950/40 border border-amber-500/30 text-amber-300 p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{statusMessage}</span>
-              </div>
-            )}
 
             <div className="space-y-2.5">
               <a
@@ -376,58 +300,25 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 <ExternalLink className="w-4 h-4" />
               </a>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyMessage}
-                  className="flex-1 bg-[#141b2d] hover:bg-[#1a233a] border border-gray-700/80 text-gray-300 font-semibold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
-                >
-                  {copiedMessage ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedMessage ? "Teks Tersalin!" : "Salin Pesan"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCheckQuotaUpdated}
-                  disabled={checkingStatus}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-blue-600/20"
-                >
-                  {checkingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                  <span>{checkingStatus ? "Memeriksa..." : "Cek Kuota dari Server"}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleCopyMessage}
+                className="w-full bg-[#141b2d] hover:bg-[#1a233a] border border-gray-700/80 text-gray-300 font-semibold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                {copiedMessage ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedMessage ? "Teks Pesan Berhasil Tersalin!" : "Salin Pesan Pemesanan"}</span>
+              </button>
 
               <div className="pt-2 text-center">
                 <button
                   type="button"
-                  onClick={handleFinish}
-                  className="text-xs text-gray-400 hover:text-white transition cursor-pointer"
+                  onClick={onClose}
+                  className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-xs py-2.5 rounded-xl transition cursor-pointer"
                 >
-                  Tutup & Kembali
+                  Tutup Dialog
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* STEP 3: SUCCESS CONFIRMATION */}
-        {paymentStep === 'success' && (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Kuota Berhasil Ditambahkan!
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-300 mb-6 max-w-md mx-auto leading-relaxed">
-              Admin telah berhasil mengaktifkan kuota baru ke akun Anda. Selamat menyusun perangkat ajar Kurikulum Merdeka terbaik!
-            </p>
-            <button
-              onClick={handleFinish}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-8 py-3 rounded-xl shadow-lg shadow-emerald-600/30 cursor-pointer transition"
-            >
-              Mulai Generate Bahan Ajar
-            </button>
           </div>
         )}
 
