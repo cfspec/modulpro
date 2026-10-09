@@ -600,13 +600,22 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-[#182033] border border-gray-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    placeholder={mode === 'register' ? 'Minimal 6 karakter' : '••••••••'}
+                    className="w-full bg-[#182033] border border-gray-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-gray-500 hover:text-gray-300 transition cursor-pointer"
+                    title={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
+                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 

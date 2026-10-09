@@ -53,15 +53,26 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
     setIsSyncing(true);
     setSyncMessage(null);
     try {
+      // 1. Cek & sinkronkan langsung profil & kuota dari Supabase Cloud
+      if (supabase) {
+        const { data: { user: sUser } } = await supabase.auth.getUser();
+        if (sUser) {
+          const updatedProfile = await getUserProfileFromCloud(sUser);
+          if (onRefreshUser) {
+            onRefreshUser(updatedProfile);
+          }
+          setSyncMessage(`Sinkronisasi berhasil! Status: ${updatedProfile.statusPlan} • Modul (${updatedProfile.quota.modulAjar}) LKPD (${updatedProfile.quota.lkpd}) HOTS (${updatedProfile.quota.soalHots})`);
+          setIsSyncing(false);
+          return;
+        }
+      }
+
+      // 2. Fallback check midtrans jika ada
       const apiUrl = import.meta.env.VITE_API_URL || '';
       const response = await fetch(`${apiUrl}/api/midtrans/status/latest?email=${user.email}`);
-      if (!response.ok) {
-        throw new Error("Gagal memeriksa status terbaru.");
-      }
-      const data = await response.json();
-      if (data.success) {
-        // Refresh profile dari cloud
-        if (supabase) {
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && supabase) {
           const { data: { user: sUser } } = await supabase.auth.getUser();
           if (sUser) {
             const updatedProfile = await getUserProfileFromCloud(sUser);
@@ -69,16 +80,15 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
               onRefreshUser(updatedProfile);
             }
           }
+          setSyncMessage("Sukses! Kuota telah diperbarui.");
+          return;
         }
-        setSyncMessage("Sukses! Pembayaran tertunda Anda berhasil diverifikasi dan kuota telah ditambahkan!");
-      } else if (data.status === 'pending') {
-        setSyncMessage("Pembayaran Anda masih dalam status 'pending' di Midtrans. Silakan selesaikan pembayaran QRIS terlebih dahulu.");
-      } else {
-        setSyncMessage("Tidak ada transaksi pending yang ditemukan untuk akun Anda.");
       }
+
+      setSyncMessage("Kuota akun Anda telah tersinkronisasi dengan server.");
     } catch (err: any) {
       console.error(err);
-      setSyncMessage("Terjadi masalah saat mensinkronisasikan pembayaran.");
+      setSyncMessage("Gagal menyinkronkan data. Silakan muat ulang (refresh) halaman.");
     } finally {
       setIsSyncing(false);
     }
@@ -134,7 +144,7 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
               ) : (
                 <RefreshCw className="w-3.5 h-3.5" />
               )}
-              <span>{isSyncing ? "Mensinkronkan..." : "Sinkronkan Pembayaran"}</span>
+              <span>{isSyncing ? "Mensinkronkan..." : "Sinkronkan Kuota"}</span>
             </button>
           </div>
 

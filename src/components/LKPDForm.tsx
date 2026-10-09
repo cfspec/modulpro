@@ -45,7 +45,7 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
       if (onOpenUpgrade) {
         onOpenUpgrade();
       } else {
-        alert("Kuota generate LKPD Anda telah habis (0/25). Silakan Top Up kuota!");
+        alert("Kuota generate LKPD Anda telah habis. Silakan Top Up kuota!");
       }
       return;
     }
