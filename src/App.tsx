@@ -11,7 +11,7 @@ import { LegalModal } from './components/LegalModal';
 import { HistoryDashboard } from './components/HistoryDashboard';
 import { TabType, LKPDFormData, LKPDGenerated, UserProfile } from './types';
 import { SafeQueueLoading } from './components/SafeQueueLoading';
-import { getUserProfileFromCloud, deductQuotaInCloud, addQuotaInCloud } from './lib/userStore';
+import { getUserProfileFromCloud, deductQuotaInCloud } from './lib/userStore';
 import { saveHistoryItem } from './lib/historyStore';
 
 const INITIAL_MOCK_USER: UserProfile = {
@@ -170,16 +170,6 @@ export default function App() {
       setUser(updated);
     } catch (e) {
       console.warn('deductQuotaInCloud error:', e);
-    }
-  };
-
-  const handleAddQuota = async (amountModul: number, amountLKPD: number, amountHOTS: number) => {
-    if (!user) return;
-    try {
-      const updated = await addQuotaInCloud(user, amountModul, amountLKPD, amountHOTS, 'Pro Member');
-      setUser(updated);
-    } catch (e) {
-      console.warn('addQuotaInCloud error:', e);
     }
   };
 
@@ -432,7 +422,7 @@ export default function App() {
         user={user}
         isOpen={isUpgradeOpen}
         onClose={() => setIsUpgradeOpen(false)}
-        onAddQuota={handleAddQuota}
+        onRefreshUser={(updated) => setUser(updated)}
         onOpenTerms={() => {
           setLegalTab('refund');
           setIsLegalOpen(true);
