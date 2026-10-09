@@ -166,12 +166,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, default
                 <span className="text-blue-500">1.</span> Sistem Pembelian & Kuota Premium
               </h3>
               <p>
-                <strong>Paket Kuota Pro:</strong> Pembayaran tunggal sebesar <strong>Rp 35.000</strong> akan memberikan pengguna total <strong>45 Kuota Premium</strong> yang terdiri dari:
+                <strong>Paket Ketengan Guru:</strong> Pembayaran tunggal sebesar <strong>Rp 6.000</strong> akan memberikan pengguna kuota tambahan yang terdiri dari:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-gray-300">
-                <li><strong>15 kali</strong> proses generate Modul Ajar Kurikulum Merdeka.</li>
-                <li><strong>15 kali</strong> proses generate LKPD (Lembar Kerja Peserta Didik).</li>
-                <li><strong>15 kali</strong> proses generate Soal Asesmen HOTS.</li>
+                <li><strong>3 kali</strong> proses generate Modul Ajar Kurikulum Merdeka.</li>
+                <li><strong>3 kali</strong> proses generate LKPD (Lembar Kerja Peserta Didik).</li>
               </ul>
               <p>
                 <strong>Masa Aktif Kuota:</strong> Kuota premium yang telah dibeli <strong>tidak memiliki batas waktu (tidak akan hangus)</strong>. Kuota Anda akan tetap tersimpan aman dan dapat digunakan kapan saja selama situs ini beroperasi secara online.

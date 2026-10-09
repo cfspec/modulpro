@@ -8,10 +8,10 @@ export interface SavedQuotaData {
 }
 
 export const DEFAULT_TRIAL_QUOTA: UserQuota = {
-  modulAjar: 2,
-  maxModulAjar: 2,
-  lkpd: 2,
-  maxLkpd: 2,
+  modulAjar: 1,
+  maxModulAjar: 1,
+  lkpd: 1,
+  maxLkpd: 1,
   soalHots: 0,
   maxSoalHots: 0,
 };
@@ -23,10 +23,10 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     full_name TEXT,
     school_name TEXT,
     status_plan TEXT NOT NULL DEFAULT 'Free Trial',
-    modul_ajar INTEGER NOT NULL DEFAULT 2,
-    max_modul_ajar INTEGER NOT NULL DEFAULT 2,
-    lkpd INTEGER NOT NULL DEFAULT 2,
-    max_lkpd INTEGER NOT NULL DEFAULT 2,
+    modul_ajar INTEGER NOT NULL DEFAULT 1,
+    max_modul_ajar INTEGER NOT NULL DEFAULT 1,
+    lkpd INTEGER NOT NULL DEFAULT 1,
+    max_lkpd INTEGER NOT NULL DEFAULT 1,
     soal_hots INTEGER NOT NULL DEFAULT 0,
     max_soal_hots INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -78,10 +78,10 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     COALESCE(NEW.raw_user_meta_data->>'school_name', 'Sekolah Kurikulum Merdeka'),
     'Free Trial',
-    2, -- Jatah awal Modul Ajar
-    2,
-    2, -- Jatah awal LKPD
-    2,
+    1, -- Jatah awal Modul Ajar
+    1,
+    1, -- Jatah awal LKPD
+    1,
     0, -- Jatah awal Soal HOTS
     0
   )
@@ -202,10 +202,10 @@ export async function getUserProfileFromCloud(sUser: any): Promise<UserProfile> 
           statusPlan: (dbProfile.status_plan || 'Free Trial') as any,
           joinedDate: new Date(dbProfile.created_at || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           quota: {
-            modulAjar: typeof dbProfile.modul_ajar === 'number' ? dbProfile.modul_ajar : 2,
-            maxModulAjar: typeof dbProfile.max_modul_ajar === 'number' ? dbProfile.max_modul_ajar : 2,
-            lkpd: typeof dbProfile.lkpd === 'number' ? dbProfile.lkpd : 2,
-            maxLkpd: typeof dbProfile.max_lkpd === 'number' ? dbProfile.max_lkpd : 2,
+            modulAjar: typeof dbProfile.modul_ajar === 'number' ? dbProfile.modul_ajar : 1,
+            maxModulAjar: typeof dbProfile.max_modul_ajar === 'number' ? dbProfile.max_modul_ajar : 1,
+            lkpd: typeof dbProfile.lkpd === 'number' ? dbProfile.lkpd : 1,
+            maxLkpd: typeof dbProfile.max_lkpd === 'number' ? dbProfile.max_lkpd : 1,
             soalHots: typeof dbProfile.soal_hots === 'number' ? dbProfile.soal_hots : 0,
             maxSoalHots: typeof dbProfile.max_soal_hots === 'number' ? dbProfile.max_soal_hots : 0,
           }
@@ -217,10 +217,10 @@ export async function getUserProfileFromCloud(sUser: any): Promise<UserProfile> 
         // Tabel user_profiles ada, tapi baris user ini belum ada: buatkan baris baru
         const metaQuota = sUser.user_metadata?.quota;
         const initialQuota: UserQuota = {
-          modulAjar: typeof metaQuota?.modulAjar === 'number' ? metaQuota.modulAjar : 2,
-          maxModulAjar: typeof metaQuota?.maxModulAjar === 'number' ? metaQuota.maxModulAjar : 2,
-          lkpd: typeof metaQuota?.lkpd === 'number' ? metaQuota.lkpd : 2,
-          maxLkpd: typeof metaQuota?.maxLkpd === 'number' ? metaQuota.maxLkpd : 2,
+          modulAjar: typeof metaQuota?.modulAjar === 'number' ? metaQuota.modulAjar : 1,
+          maxModulAjar: typeof metaQuota?.maxModulAjar === 'number' ? metaQuota.maxModulAjar : 1,
+          lkpd: typeof metaQuota?.lkpd === 'number' ? metaQuota.lkpd : 1,
+          maxLkpd: typeof metaQuota?.maxLkpd === 'number' ? metaQuota.maxLkpd : 1,
           soalHots: typeof metaQuota?.soalHots === 'number' ? metaQuota.soalHots : 0,
           maxSoalHots: typeof metaQuota?.maxSoalHots === 'number' ? metaQuota.maxSoalHots : 0,
         };
@@ -272,9 +272,9 @@ export async function getUserProfileFromCloud(sUser: any): Promise<UserProfile> 
   if (typeof metaQuota?.modulAjar === 'number') {
     quota = {
       modulAjar: metaQuota.modulAjar,
-      maxModulAjar: typeof metaQuota.maxModulAjar === 'number' ? metaQuota.maxModulAjar : 2,
-      lkpd: typeof metaQuota.lkpd === 'number' ? metaQuota.lkpd : 2,
-      maxLkpd: typeof metaQuota.maxLkpd === 'number' ? metaQuota.maxLkpd : 2,
+      maxModulAjar: typeof metaQuota.maxModulAjar === 'number' ? metaQuota.maxModulAjar : 1,
+      lkpd: typeof metaQuota.lkpd === 'number' ? metaQuota.lkpd : 1,
+      maxLkpd: typeof metaQuota.maxLkpd === 'number' ? metaQuota.maxLkpd : 1,
       soalHots: typeof metaQuota.soalHots === 'number' ? metaQuota.soalHots : 0,
       maxSoalHots: typeof metaQuota.maxSoalHots === 'number' ? metaQuota.maxSoalHots : 0,
     };

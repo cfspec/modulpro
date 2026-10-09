@@ -24,20 +24,18 @@ const ADMIN_WHATSAPP_NUMBER = '6287726378446';
 const ADMIN_WHATSAPP_DISPLAY = '0877-2637-8446';
 
 const singlePackage: PaymentPackage = {
-  id: 'pkg_pro_35k',
-  name: 'Paket Pro Top Up Guru',
-  price: 35000,
-  priceLabel: 'Rp 35.000',
-  quotaModul: 15,
-  quotaLKPD: 15,
-  quotaHOTS: 15,
+  id: 'pkg_ketengan_6k',
+  name: 'Paket Ketengan Guru',
+  price: 6000,
+  priceLabel: 'Rp 6.000',
+  quotaModul: 3,
+  quotaLKPD: 3,
+  quotaHOTS: 0,
   popular: true,
   features: [
-    '15x Generate Modul Ajar Kurikulum Merdeka',
-    '15x Generate LKPD Interaktif & Siap Cetak',
-    '15x Generate & Download Soal HOTS',
-    'Akses Kunci Jawaban & Rubrik Penilaian Lengkap',
-    'Export Format Word (.doc) & PDF Siap Cetak',
+    '3x Generate Modul Ajar Kurikulum Merdeka Lengkap',
+    '3x Generate LKPD Interaktif & Siap Cetak',
+    'Akses Format Lengkap (Cetak PDF & Export Word .doc)',
     'Kuota Tidak Hangus (Permanen & Tanpa Kedaluwarsa)',
     'Aktivasi Instan & Diproses Langsung via WhatsApp QRIS',
   ],
@@ -72,14 +70,14 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, isOpen, onClos
     const school = user?.schoolName || '-';
 
     return `Halo Admin Generator Modul Ajar PRO,
-Saya ingin memesan *Paket Pro Top Up Guru (Rp 35.000)*.
+Saya ingin memesan *Paket Ketengan Guru (Rp 6.000)*.
 
 📋 *Rincian Akun Pemesan:*
 • Nama: ${userName}
 • Email Akun: ${userEmail}
 • Asal Sekolah: ${school}
-• Paket: Paket Pro Guru (+15 Modul, +15 LKPD, +15 Soal HOTS)
-• Total Biaya: Rp 35.000
+• Paket: Paket Ketengan (+3 Modul Ajar & +3 LKPD)
+• Total Biaya: Rp 6.000
 
 Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim bukti bayar, mohon bantu aktifkan kuota akun saya. Terima kasih!`;
   };
@@ -119,13 +117,13 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
             <div className="text-center mb-6">
               <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5 mb-2">
                 <Sparkles className="w-3.5 h-3.5" />
-                Top Up Kuota Generator Pro
+                Top Up Kuota Hemat Ketengan
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-white font-serif-display">
-                Paket Tambahan Kuota
+                Paket Ketengan Guru
               </h2>
               <p className="text-xs sm:text-sm text-gray-400 mt-1 max-w-md mx-auto">
-                Isi ulang kuota pembuatan bahan ajar & soal dengan pembayaran QRIS resmi via WhatsApp Admin.
+                Isi ulang kuota pembuatan bahan ajar hemat dengan pembayaran QRIS resmi via WhatsApp Admin.
               </p>
             </div>
 
@@ -134,7 +132,7 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <span className="bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-2 inline-block">
-                    PRO MEMBER
+                    PAKET KETENGAN
                   </span>
                   <h3 className="text-xl font-bold text-white">{singlePackage.name}</h3>
                 </div>
@@ -150,18 +148,16 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 <p className="text-xs font-semibold text-gray-300 mb-3">
                   Rincian Total Kuota Tambahan yang Didapatkan:
                 </p>
-                <div className="grid grid-cols-3 gap-2 text-center mb-4">
-                  <div className="bg-[#101524] border border-gray-700/60 rounded-xl p-2.5">
-                    <span className="block text-lg font-extrabold text-blue-400">+15</span>
-                    <span className="text-[10px] text-gray-400 font-medium">Modul Ajar</span>
+                <div className="grid grid-cols-2 gap-3 text-center mb-4">
+                  <div className="bg-[#101524] border border-gray-700/60 rounded-xl p-3">
+                    <span className="block text-2xl font-extrabold text-blue-400">+3</span>
+                    <span className="text-xs text-gray-300 font-semibold">Modul Ajar</span>
+                    <span className="block text-[10px] text-gray-500 mt-0.5">Kurikulum Merdeka</span>
                   </div>
-                  <div className="bg-[#101524] border border-gray-700/60 rounded-xl p-2.5">
-                    <span className="block text-lg font-extrabold text-purple-400">+15</span>
-                    <span className="text-[10px] text-gray-400 font-medium">LKPD</span>
-                  </div>
-                  <div className="bg-[#101524] border border-gray-700/60 rounded-xl p-2.5">
-                    <span className="block text-lg font-extrabold text-emerald-400">+15</span>
-                    <span className="text-[10px] text-gray-400 font-medium">Soal HOTS</span>
+                  <div className="bg-[#101524] border border-gray-700/60 rounded-xl p-3">
+                    <span className="block text-2xl font-extrabold text-purple-400">+3</span>
+                    <span className="text-xs text-gray-300 font-semibold">LKPD</span>
+                    <span className="block text-[10px] text-gray-500 mt-0.5">Interaktif & Siap Cetak</span>
                   </div>
                 </div>
 
@@ -195,8 +191,8 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 </p>
                 <ol className="list-decimal pl-4 space-y-1.5 text-gray-400 text-[11px] leading-relaxed">
                   <li>Klik tombol <strong className="text-emerald-400">Pesan via WhatsApp</strong> di bawah untuk membuka chat dengan pesan otomatis.</li>
-                  <li>Admin akan membalas dengan mengirimkan barcode <strong className="text-white">QRIS</strong> resmi (Bisa dibayar via GoPay, OVO, Dana, ShopeePay, BCA, BRI, Mandiri, dll).</li>
-                  <li>Kirim bukti bayar ke WhatsApp Admin, kuota <strong className="text-emerald-400">45 kuota Pro</strong> akan langsung diaktifkan oleh Admin ke akun Anda di database!</li>
+                  <li>Admin akan membalas dengan gambar barcode <strong className="text-white">QRIS</strong> resmi (Bisa dibayar via GoPay, OVO, Dana, ShopeePay, BCA, BRI, Mandiri, dll).</li>
+                  <li>Kirim bukti bayar ke WhatsApp Admin, kuota <strong className="text-emerald-400">+3 Modul & +3 LKPD</strong> akan langsung diaktifkan oleh Admin ke akun Anda di database!</li>
                 </ol>
               </div>
 
@@ -244,7 +240,7 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 }`}
               >
                 <WhatsAppIcon className="w-5 h-5" />
-                <span>Pesan Sekarang via WhatsApp — Rp 35.000</span>
+                <span>Pesan Paket Ketengan via WhatsApp — Rp 6.000</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -274,7 +270,7 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                   Pastikan pesan pemesanan yang otomatis terbuat sudah Anda <strong>Kirim</strong> di aplikasi WhatsApp ke Admin.
                 </li>
                 <li>
-                  Admin akan membalas dengan gambar barcode <strong>QRIS</strong> pembayaran resmi senilai <strong>Rp 35.000</strong>.
+                  Admin akan membalas dengan gambar barcode <strong>QRIS</strong> pembayaran resmi senilai <strong>Rp 6.000</strong>.
                 </li>
                 <li>
                   Pindai & bayar melalui e-wallet pilihan Anda (GoPay, OVO, Dana, ShopeePay) atau m-Banking (BCA, BRI, Mandiri, BNI, dll).
@@ -305,7 +301,7 @@ Mohon kirimkan kode QRIS pembayarannya ya Admin. Setelah saya transfer dan kirim
                 onClick={handleCopyMessage}
                 className="w-full bg-[#141b2d] hover:bg-[#1a233a] border border-gray-700/80 text-gray-300 font-semibold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
-                {copiedMessage ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copiedMessage ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedMessage ? "Teks Pesan Berhasil Tersalin!" : "Salin Pesan Pemesanan"}</span>
               </button>
 

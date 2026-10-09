@@ -22,10 +22,10 @@ const INITIAL_MOCK_USER: UserProfile = {
   statusPlan: 'Free Trial',
   joinedDate: '24 Juli 2026',
   quota: {
-    modulAjar: 2,
-    maxModulAjar: 2,
-    lkpd: 2,
-    maxLkpd: 2,
+    modulAjar: 1,
+    maxModulAjar: 1,
+    lkpd: 1,
+    maxLkpd: 1,
     soalHots: 0,
     maxSoalHots: 0,
   }

@@ -647,7 +647,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   </>
                 ) : (
                   <>
-                    <span>{mode === 'register' ? 'Daftar & Klaim Bonus (2x Modul & 2x LKPD)' : 'Masuk'}</span>
+                    <span>{mode === 'register' ? 'Daftar & Klaim Bonus (1x Modul & 1x LKPD)' : 'Masuk'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -669,8 +669,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <span>Bonus Kuota Akun Baru:</span>
               </div>
               <ul className="list-disc list-inside text-[11px] text-gray-400 space-y-1 pl-1">
-                <li><strong>2x</strong> Generate Modul Ajar</li>
-                <li><strong>2x</strong> Generate LKPD Interaktif</li>
+                <li><strong>1x</strong> Generate Modul Ajar</li>
+                <li><strong>1x</strong> Generate LKPD Interaktif</li>
               </ul>
             </div>
           </>

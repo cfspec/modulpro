@@ -42,9 +42,9 @@ const getGeminiClient = () => {
   });
 };
 
-// Candidate models in order of priority (strictly gemini-3.5-flash as requested)
+// Candidate models in order of priority (strictly gemini-3.1-flash-lite as requested)
 const CANDIDATE_MODELS = [
-  "gemini-3.5-flash"
+  "gemini-3.1-flash-lite"
 ];
 
 async function generateContentWithFallback(
@@ -555,14 +555,14 @@ async function handlePaymentSuccess(orderId: string, email: string) {
     return false;
   }
 
-  // Update profile adding 15 of each quota
+  // Update profile adding 3 modul and 3 lkpd
   const updated = {
-    modul_ajar: (profile.modul_ajar || 0) + 15,
-    max_modul_ajar: (profile.max_modul_ajar || 0) + 15,
-    lkpd: (profile.lkpd || 0) + 15,
-    max_lkpd: (profile.max_lkpd || 0) + 15,
-    soal_hots: (profile.soal_hots || 0) + 15,
-    max_soal_hots: (profile.max_soal_hots || 0) + 15,
+    modul_ajar: (profile.modul_ajar || 0) + 3,
+    max_modul_ajar: (profile.max_modul_ajar || 0) + 3,
+    lkpd: (profile.lkpd || 0) + 3,
+    max_lkpd: (profile.max_lkpd || 0) + 3,
+    soal_hots: (profile.soal_hots || 0),
+    max_soal_hots: (profile.max_soal_hots || 0),
     status_plan: 'Pro Member',
     updated_at: new Date().toISOString()
   };
@@ -584,7 +584,7 @@ async function handlePaymentSuccess(orderId: string, email: string) {
       .upsert({
         order_id: orderId,
         email: cleanEmail,
-        amount: 35000,
+        amount: 6000,
         status: 'settlement',
         created_at: new Date().toISOString()
       });
@@ -592,7 +592,7 @@ async function handlePaymentSuccess(orderId: string, email: string) {
     console.warn("Could not write transaction log to midtrans_transactions table:", txErr);
   }
 
-  console.log(`Successfully credited 45 premium quota to ${cleanEmail} for order ${orderId}`);
+  console.log(`Successfully credited 6 quota (3 Modul + 3 LKPD) to ${cleanEmail} for order ${orderId}`);
   return true;
 }
 
@@ -617,14 +617,14 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
     const payload = {
       transaction_details: {
         order_id: orderId,
-        gross_amount: 35000
+        gross_amount: 6000
       },
       item_details: [
         {
-          id: "PRO_45",
-          price: 35000,
+          id: "KETENGAN_6K",
+          price: 6000,
           quantity: 1,
-          name: "Paket Kuota Pro (45 Kuota Premium)"
+          name: "Paket Ketengan Guru (3 Modul + 3 LKPD)"
         }
       ],
       customer_details: {
@@ -634,7 +634,7 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
       // Batasi hanya menerima QRIS, GoPay, ShopeePay, Dana, dan OVO
       enabled_payments: ["qris", "gopay", "shopeepay", "dana", "ovo"],
       custom_field1: email,
-      custom_field2: "add_quota_pro_45"
+      custom_field2: "add_quota_ketengan_6k"
     };
 
     const response = await fetch(snapUrl, {
@@ -663,7 +663,7 @@ app.post("/api/midtrans/create-transaction", async (req, res) => {
           .upsert({
             order_id: orderId,
             email: email.toLowerCase().trim(),
-            amount: 35000,
+            amount: 6000,
             status: 'pending',
             created_at: new Date().toISOString()
           });
