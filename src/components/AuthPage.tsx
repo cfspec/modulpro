@@ -202,10 +202,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               school_name: schoolName,
               status_plan: 'Free Trial',
               quota: {
-                modulAjar: 2,
-                maxModulAjar: 2,
-                lkpd: 2,
-                maxLkpd: 2,
+                modulAjar: 1,
+                maxModulAjar: 1,
+                lkpd: 1,
+                maxLkpd: 1,
                 soalHots: 0,
                 maxSoalHots: 0,
               },
@@ -219,17 +219,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           return;
         }
 
-        if (data?.session && data?.user) {
-          const profile = await getUserProfileFromCloud(data.user);
-          window.history.pushState({}, '', '/');
-          onLoginSuccess(profile);
-          return;
-        }
-
+        // Pendaftaran berhasil: langsung alihkan ke mode masuk akun
         setMode('login');
         setEmail(targetEmail);
+        setPassword(''); // Kosongkan agar pengguna mengisi kata sandi yang telah didaftarkan
         setErrorMessage(null);
-        setSuccessMessage("Pendaftaran akun berhasil! Silakan langsung klik Masuk untuk mulai menggunakan aplikasi.");
+        setSuccessMessage("Pendaftaran akun berhasil! Silakan masukkan kata sandi yang telah Anda daftarkan untuk masuk.");
 
         window.history.replaceState(
           {},
@@ -245,7 +240,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         });
 
         if (error) {
-          setErrorMessage(error.message);
+          if (error.message?.toLowerCase().includes('email not confirmed')) {
+            setErrorMessage("Email belum dikonfirmasi oleh sistem Supabase. Silakan nonaktifkan opsi 'Confirm email' di Dashboard Supabase (Authentication > Providers > Email) agar pendaftar baru bisa langsung masuk tanpa verifikasi email.");
+          } else {
+            setErrorMessage(error.message);
+          }
           setLoading(false);
           return;
         }

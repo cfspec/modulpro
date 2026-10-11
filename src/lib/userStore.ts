@@ -106,10 +106,10 @@ SELECT
   COALESCE(raw_user_meta_data->>'full_name', split_part(email, '@', 1)),
   COALESCE(raw_user_meta_data->>'school_name', 'Sekolah Kurikulum Merdeka'),
   COALESCE(raw_user_meta_data->>'status_plan', 'Free Trial'),
-  COALESCE((raw_user_meta_data->'quota'->>'modulAjar')::int, 2),
-  COALESCE((raw_user_meta_data->'quota'->>'maxModulAjar')::int, 2),
-  COALESCE((raw_user_meta_data->'quota'->>'lkpd')::int, 2),
-  COALESCE((raw_user_meta_data->'quota'->>'maxLkpd')::int, 2),
+  COALESCE((raw_user_meta_data->'quota'->>'modulAjar')::int, 1),
+  COALESCE((raw_user_meta_data->'quota'->>'maxModulAjar')::int, 1),
+  COALESCE((raw_user_meta_data->'quota'->>'lkpd')::int, 1),
+  COALESCE((raw_user_meta_data->'quota'->>'maxLkpd')::int, 1),
   COALESCE((raw_user_meta_data->'quota'->>'soalHots')::int, 0),
   COALESCE((raw_user_meta_data->'quota'->>'maxSoalHots')::int, 0)
 FROM auth.users
@@ -194,6 +194,32 @@ export async function getUserProfileFromCloud(sUser: any): Promise<UserProfile> 
 
       if (!dbError && dbProfile) {
         // Data ditemukan di tabel user_profiles
+        let modulVal = typeof dbProfile.modul_ajar === 'number' ? dbProfile.modul_ajar : 1;
+        let maxModulVal = typeof dbProfile.max_modul_ajar === 'number' ? dbProfile.max_modul_ajar : 1;
+        let lkpdVal = typeof dbProfile.lkpd === 'number' ? dbProfile.lkpd : 1;
+        let maxLkpdVal = typeof dbProfile.max_lkpd === 'number' ? dbProfile.max_lkpd : 1;
+
+        // Normalisasi kuota trial: jika akun Free Trial masih bernilai 2 dari template default lama, koreksi otomatis ke 1
+        if (dbProfile.status_plan === 'Free Trial') {
+          if (maxModulVal === 2 && modulVal === 2) {
+            modulVal = 1;
+            maxModulVal = 1;
+          }
+          if (maxLkpdVal === 2 && lkpdVal === 2) {
+            lkpdVal = 1;
+            maxLkpdVal = 1;
+          }
+          // Sinkronkan ke database di latar belakang
+          if (dbProfile.modul_ajar === 2 || dbProfile.lkpd === 2) {
+            Promise.resolve(
+              supabase
+                .from('user_profiles')
+                .update({ modul_ajar: modulVal, max_modul_ajar: maxModulVal, lkpd: lkpdVal, max_lkpd: maxLkpdVal })
+                .eq('id', dbProfile.id)
+            ).catch(() => {});
+          }
+        }
+
         const profile: UserProfile = {
           id: dbProfile.id || userId,
           name: dbProfile.full_name || sUser.user_metadata?.full_name || userEmail.split('@')[0] || 'Bapak/Ibu Guru',
@@ -202,10 +228,10 @@ export async function getUserProfileFromCloud(sUser: any): Promise<UserProfile> 
           statusPlan: (dbProfile.status_plan || 'Free Trial') as any,
           joinedDate: new Date(dbProfile.created_at || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           quota: {
-            modulAjar: typeof dbProfile.modul_ajar === 'number' ? dbProfile.modul_ajar : 1,
-            maxModulAjar: typeof dbProfile.max_modul_ajar === 'number' ? dbProfile.max_modul_ajar : 1,
-            lkpd: typeof dbProfile.lkpd === 'number' ? dbProfile.lkpd : 1,
-            maxLkpd: typeof dbProfile.max_lkpd === 'number' ? dbProfile.max_lkpd : 1,
+            modulAjar: modulVal,
+            maxModulAjar: maxModulVal,
+            lkpd: lkpdVal,
+            maxLkpd: maxLkpdVal,
             soalHots: typeof dbProfile.soal_hots === 'number' ? dbProfile.soal_hots : 0,
             maxSoalHots: typeof dbProfile.max_soal_hots === 'number' ? dbProfile.max_soal_hots : 0,
           }
