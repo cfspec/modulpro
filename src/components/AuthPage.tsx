@@ -214,7 +214,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         });
 
         if (error) {
-          setErrorMessage(error.message);
+          if (error.message?.toLowerCase().includes('email signups are disabled') || (error as any).code === 'email_provider_disabled') {
+            setErrorMessage("Penyedia Email di Supabase sedang mati (Enable Email provider: OFF). Silakan buka Dashboard Supabase > Authentication > Providers > Email, lalu aktifkan saklar paling atas 'Enable Email provider' dan klik Save.");
+          } else {
+            setErrorMessage(error.message);
+          }
           setLoading(false);
           return;
         }
