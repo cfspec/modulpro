@@ -28,7 +28,7 @@ app.use(express.json({ limit: "10mb" }));
 
 // Initialize Gemini Client (Google AI Studio)
 const getGeminiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
   if (!apiKey) {
     return null;
   }
@@ -44,7 +44,8 @@ const getGeminiClient = () => {
 
 // Candidate models for Google AI Studio (Gemini)
 const CANDIDATE_MODELS = [
-  "gemini-3.5-flash"
+  "gemini-2.5-flash",,
+  "gemini-3.6-flash"
 ];
 
 /**
@@ -67,87 +68,8 @@ function extractJsonString(raw: string): string {
 }
 
 /**
- * Panggil API OpenRouter (OpenAI-compatible chat completions)
- */
-async function generateWithOpenRouter(params: {
-  contents: string;
-  config?: any;
-}): Promise<string> {
-  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
-  if (!openRouterKey) {
-    throw new Error("OPENROUTER_API_KEY tidak dikonfigurasi.");
-  }
-// Model OpenRouter yang dipilih (default ke google/gemma-4-31b-it:free jika tidak dispesifikasi)
-const model = process.env.OPENROUTER_MODEL?.trim() || "google/gemma-4-31b-it:free";
-  const systemInstruction = params.config?.systemInstruction || "Anda adalah asisten ahli Kurikulum Merdeka Indonesia.";
-
-  console.log(`[AI OpenRouter] Mengirim permintaan ke model: '${model}'...`);
-
-  const requestBody: any = {
-    model: model,
-    messages: [
-      {
-        role: "system",
-        content: `${systemInstruction}\nPENTING: Kembalikan HANYA format JSON valid tanpa penjelasan teks lain di luar JSON dan tanpa markdown formatting.`,
-      },
-      {
-        role: "user",
-        content: params.contents,
-      },
-    ],
-  };
-
-  // Coba kirim dengan response_format json_object terlebih dahulu
-  let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${openRouterKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": process.env.APP_URL || "https://modulpro.vercel.app",
-      "X-Title": "Generator Modul Ajar PRO",
-    },
-    body: JSON.stringify({
-      ...requestBody,
-      response_format: { type: "json_object" },
-    }),
-  });
-
-  // Jika model tidak mendukung response_format type json_object (HTTP 400), coba sekali lagi tanpa parameter tersebut
-  if (!response.ok && response.status === 400) {
-    const errCheck = await response.clone().text();
-    if (errCheck.toLowerCase().includes("response_format")) {
-      console.warn("[AI OpenRouter] Model tidak mendukung parameter response_format, mengulang tanpa response_format...");
-      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${openRouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": process.env.APP_URL || "https://modulpro.vercel.app",
-          "X-Title": "Generator Modul Ajar PRO",
-        },
-        body: JSON.stringify(requestBody),
-      });
-    }
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenRouter HTTP ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
-  const rawText = data?.choices?.[0]?.message?.content;
-  if (!rawText) {
-    throw new Error("OpenRouter tidak mengembalikan teks konten (empty response).");
-  }
-
-  return extractJsonString(rawText);
-}
-
-/**
- * Generator utama dengan sistem Failover Cerdas:
- * 1. Prioritas Utama: Coba OpenRouter terlebih dahulu (jika OPENROUTER_API_KEY tersedia).
- * 2. Fallback Otomatis: Jika OpenRouter gagal / error, beralih langsung ke Google AI Studio (Gemini).
+ * Generator konten menggunakan Google AI Studio (Gemini)
+ * Mendukung rotasi model cadangan otomatis jika terjadi kendala antrian/kuota.
  */
 async function generateContentWithFallback(
   ai: GoogleGenAI | null,
@@ -156,26 +78,8 @@ async function generateContentWithFallback(
     config?: any;
   }
 ): Promise<{ text: string }> {
-  let openRouterError: any = null;
-
-  // 1. Coba OpenRouter jika key tersedia
-  if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim().length > 0) {
-    try {
-      const openRouterResult = await generateWithOpenRouter(params);
-      console.log("✅ [AI Provider] Berhasil generate via OpenRouter!");
-      return { text: openRouterResult };
-    } catch (err: any) {
-      openRouterError = err;
-      console.warn(`⚠️ [AI Provider] OpenRouter mengalami kendala: ${err?.message || err}. Beralih otomatis ke Google AI Studio (Gemini)...`);
-    }
-  }
-
-  // 2. Fallback ke Google AI Studio (Gemini)
   if (!ai) {
-    if (openRouterError) {
-      throw new Error(`OpenRouter gagal (${openRouterError.message}), dan GEMINI_API_KEY belum dikonfigurasi sebagai fallback.`);
-    }
-    throw new Error("Tidak ada API Key yang dikonfigurasi (OPENROUTER_API_KEY maupun GEMINI_API_KEY tidak ditemukan).");
+    throw new Error("GEMINI_API_KEY belum dikonfigurasi. Silakan tambahkan GEMINI_API_KEY dari Google AI Studio.");
   }
 
   let geminiError: any = null;
@@ -187,18 +91,18 @@ async function generateContentWithFallback(
         contents: params.contents,
         config: params.config,
       });
-      console.log(`✅ [AI Provider] Berhasil generate via Google AI Studio (${model})!`);
+      console.log(`✅ [Google AI Studio] Berhasil generate via '${model}'!`);
       const cleaned = extractJsonString(response.text || "{}");
       return { text: cleaned };
     } catch (err: any) {
       geminiError = err;
       const errMsg = err?.message || "";
-      console.warn(`Gemini model '${model}' error:`, errMsg);
+      console.warn(`Model '${model}' kendala:`, errMsg);
       continue;
     }
   }
 
-  throw geminiError || openRouterError || new Error("Gagal memproses permintaan AI dari semua penyedia.");
+  throw geminiError || new Error("Gagal memproses permintaan AI ke Google AI Studio.");
 }
 
 function formatGeminiError(error: any, defaultMsg: string): string {
@@ -222,24 +126,19 @@ function formatGeminiError(error: any, defaultMsg: string): string {
   return error?.message || defaultMsg;
 }
 
-// Endpoint untuk memeriksa status penyedia AI yang aktif (OpenRouter & Gemini)
+// Endpoint untuk memeriksa status penyedia Google AI Studio (Gemini)
 app.get("/api/ai-status", (_req, res) => {
-  const hasOpenRouter = !!(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim().length > 0);
-  const hasGemini = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
-  const openRouterModel = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash (default)";
+  const hasGemini = !!(
+    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0) ||
+    (process.env.VITE_GEMINI_API_KEY && process.env.VITE_GEMINI_API_KEY.trim().length > 0) ||
+    (process.env.API_KEY && process.env.API_KEY.trim().length > 0)
+  );
 
   res.json({
     status: "ok",
-    primaryProvider: hasOpenRouter ? "OpenRouter" : (hasGemini ? "Google AI Studio" : "None"),
-    fallbackProvider: (hasOpenRouter && hasGemini) ? "Google AI Studio" : "None",
-    openRouter: {
-      configured: hasOpenRouter,
-      model: openRouterModel,
-    },
-    googleAIStudio: {
-      configured: hasGemini,
-      models: CANDIDATE_MODELS,
-    },
+    provider: "Google AI Studio",
+    configured: hasGemini,
+    models: CANDIDATE_MODELS,
   });
 });
 
