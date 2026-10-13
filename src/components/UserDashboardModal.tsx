@@ -137,14 +137,14 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
               onClick={handleSyncPendingPayments}
               disabled={isSyncing}
               className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-              title="Sinkronkan transaksi jika kuota belum bertambah"
+              title="Perbarui tampilan sisa kuota dari database"
             >
               {isSyncing ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5" />
               )}
-              <span>{isSyncing ? "Mensinkronkan..." : "Sinkronkan Kuota"}</span>
+              <span>{isSyncing ? "Memeriksa..." : "Sinkronkan Kuota"}</span>
             </button>
           </div>
 

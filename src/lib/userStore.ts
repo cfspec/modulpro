@@ -382,70 +382,19 @@ export async function deductQuotaInCloud(
 }
 
 /**
- * Tambah kuota saat pembelian / transaksi Midtrans berhasil
+ * Penambahan kuota hanya dilakukan oleh Admin secara sah di database Supabase
+ * setelah verifikasi pembayaran via WhatsApp QRIS resmi.
+ * Fungsi client-side ini dinonaktifkan permanen untuk mencegah exploit/celah bypass kuota.
  */
 export async function addQuotaInCloud(
   currentUser: UserProfile,
-  amountModul: number,
-  amountLKPD: number,
-  amountHOTS: number,
-  newPlan: UserProfile['statusPlan'] = 'Pro Member'
+  _amountModul: number,
+  _amountLKPD: number,
+  _amountHOTS: number,
+  _newPlan: UserProfile['statusPlan'] = 'Pro Member'
 ): Promise<UserProfile> {
-  const updatedQuota: UserQuota = {
-    ...currentUser.quota,
-    modulAjar: currentUser.quota.modulAjar + amountModul,
-    maxModulAjar: currentUser.quota.maxModulAjar + amountModul,
-    lkpd: currentUser.quota.lkpd + amountLKPD,
-    maxLkpd: currentUser.quota.maxLkpd + amountLKPD,
-    soalHots: currentUser.quota.soalHots + amountHOTS,
-    maxSoalHots: currentUser.quota.maxSoalHots + amountHOTS,
-  };
-
-  const updatedProfile: UserProfile = {
-    ...currentUser,
-    statusPlan: newPlan,
-    quota: updatedQuota,
-  };
-
-  const userEmail = currentUser.email.toLowerCase().trim();
-
-  // 1. Simpan ke cache lokal
-  saveLocalCache(userEmail, updatedQuota, newPlan);
-
-  // 2. Update tabel user_profiles di Supabase
-  if (supabase) {
-    try {
-      await supabase
-        .from('user_profiles')
-        .update({
-          status_plan: newPlan,
-          modul_ajar: updatedQuota.modulAjar,
-          max_modul_ajar: updatedQuota.maxModulAjar,
-          lkpd: updatedQuota.lkpd,
-          max_lkpd: updatedQuota.maxLkpd,
-          soal_hots: updatedQuota.soalHots,
-          max_soal_hots: updatedQuota.maxSoalHots,
-          updated_at: new Date().toISOString()
-        })
-        .eq('email', userEmail);
-    } catch (dbErr) {
-      console.warn('Gagal update user_profiles saat top up:', dbErr);
-    }
-
-    // 3. Update auth user_metadata
-    try {
-      await supabase.auth.updateUser({
-        data: {
-          quota: updatedQuota,
-          status_plan: newPlan
-        }
-      });
-    } catch (authErr) {
-      console.warn('Gagal update auth user_metadata saat top up:', authErr);
-    }
-  }
-
-  return updatedProfile;
+  console.warn('Penambahan kuota dari browser dinonaktifkan demi keamanan sistem.');
+  return currentUser;
 }
 
 // Backward compatibility helper
