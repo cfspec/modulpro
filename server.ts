@@ -42,9 +42,8 @@ const getGeminiClient = () => {
   });
 };
 
-// Candidate models for Google AI Studio (Gemini)
+// Model for Google AI Studio (Gemini)
 const CANDIDATE_MODELS = [
-  "gemini-2.5-flash",,
   "gemini-3.6-flash"
 ];
 
