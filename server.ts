@@ -42,9 +42,9 @@ const getGeminiClient = () => {
   });
 };
 
-// Candidate models in order of priority (strictly gemini-3.5-flash as requested)
+// Candidate models in order of priority (Gemma 4 Free via OpenRouter)
 const CANDIDATE_MODELS = [
-  "gemini-3.6-flash"
+  "google/gemma-4-26b-a4b-it:free"
 ];
 
 async function generateContentWithFallback(
