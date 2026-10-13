@@ -43,9 +43,12 @@ const getGeminiClient = () => {
 };
 
 // Model for Google AI Studio (Gemini)
+// Menggunakan gemini-3.1-flash-lite sesuai permintaan
 const CANDIDATE_MODELS = [
-  "gemini-3.5-flash"
+  "gemini-3.1-flash-lite",
 ];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Membersihkan output string agar menjadi JSON valid (menghilangkan blok ```json ... ```)
@@ -68,7 +71,7 @@ function extractJsonString(raw: string): string {
 
 /**
  * Generator konten menggunakan Google AI Studio (Gemini)
- * Mendukung rotasi model cadangan otomatis jika terjadi kendala antrian/kuota.
+ * Mendukung retry otomatis (exponential backoff) dan rotasi model cadangan jika terjadi kendala antrian/kuota/503.
  */
 async function generateContentWithFallback(
   ai: GoogleGenAI | null,
@@ -78,30 +81,51 @@ async function generateContentWithFallback(
   }
 ): Promise<{ text: string }> {
   if (!ai) {
-    throw new Error("GEMINI_API_KEY belum dikonfigurasi. Silakan tambahkan GEMINI_API_KEY dari Google AI Studio.");
+    throw new Error("GEMINI_API_KEY belum dikonfigurasi. Silakan periksa GEMINI_API_KEY di environment.");
   }
 
-  let geminiError: any = null;
+  let lastError: any = null;
+  const MAX_RETRIES_PER_MODEL = 2;
+
   for (const model of CANDIDATE_MODELS) {
-    try {
-      console.log(`[Google AI Studio] Mengirim permintaan ke model: '${model}'...`);
-      const response = await ai.models.generateContent({
-        model,
-        contents: params.contents,
-        config: params.config,
-      });
-      console.log(`✅ [Google AI Studio] Berhasil generate via '${model}'!`);
-      const cleaned = extractJsonString(response.text || "{}");
-      return { text: cleaned };
-    } catch (err: any) {
-      geminiError = err;
-      const errMsg = err?.message || "";
-      console.warn(`Model '${model}' kendala:`, errMsg);
-      continue;
+    for (let attempt = 0; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
+      try {
+        console.log(`[Google AI Studio] Mengirim permintaan ke '${model}' (percobaan ${attempt + 1})...`);
+        const response = await ai.models.generateContent({
+          model,
+          contents: params.contents,
+          config: params.config,
+        });
+        console.log(`✅ [Google AI Studio] Berhasil generate via '${model}'!`);
+        const cleaned = extractJsonString(response.text || "{}");
+        return { text: cleaned };
+      } catch (err: any) {
+        lastError = err;
+        const errMsg = err?.message || "";
+        console.warn(`[Google AI Studio] Model '${model}' percobaan ${attempt + 1} terkendala:`, errMsg);
+
+        const isTransient =
+          errMsg.includes("503") ||
+          errMsg.includes("UNAVAILABLE") ||
+          errMsg.includes("high demand") ||
+          errMsg.includes("overloaded") ||
+          errMsg.includes("429") ||
+          errMsg.includes("RESOURCE_EXHAUSTED");
+
+        if (isTransient && attempt < MAX_RETRIES_PER_MODEL) {
+          const waitTime = (attempt + 1) * 1500;
+          console.log(`[Google AI Studio] Menunggu ${waitTime}ms sebelum mencoba ulang '${model}'...`);
+          await sleep(waitTime);
+          continue;
+        }
+
+        // Jika bukan transient error atau retry habis, beralih ke model cadangan berikutnya
+        break;
+      }
     }
   }
 
-  throw geminiError || new Error("Gagal memproses permintaan AI ke Google AI Studio.");
+  throw lastError || new Error("Gagal memproses permintaan AI ke Google AI Studio.");
 }
 
 function formatGeminiError(error: any, defaultMsg: string): string {
@@ -118,9 +142,10 @@ function formatGeminiError(error: any, defaultMsg: string): string {
   if (
     errMsg.includes("503") ||
     errMsg.includes("UNAVAILABLE") ||
-    errMsg.includes("high demand")
+    errMsg.includes("high demand") ||
+    errMsg.includes("overloaded")
   ) {
-    return "Server AI sedang sibuk sementara karena lonjakan trafik. Silakan tunggu beberapa saat dan coba lagi.";
+    return "Server AI sedang sibuk sementara karena lonjakan trafik. Silakan coba beberapa saat lagi.";
   }
   return error?.message || defaultMsg;
 }
@@ -931,7 +956,7 @@ async function startServer() {
   });
 }
 
-if (!process.env.NETLIFY && !process.env.LAMBDA_TASK_ROOT && !process.env.VERCEL) {
+if (!process.env.NETLIFY && !process.env.LAMBDA_TASK_ROOT && !process.env.VERCEL && !process.env.VERCEL_ENV) {
   startServer();
 }
 
