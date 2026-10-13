@@ -44,7 +44,7 @@ const getGeminiClient = () => {
 
 // Candidate models in order of priority (strictly gemini-3.5-flash as requested)
 const CANDIDATE_MODELS = [
-  "gemini-3.5-flash"
+  "gemini-3.6-flash"
 ];
 
 async function generateContentWithFallback(
