@@ -44,7 +44,7 @@ const getGeminiClient = () => {
 
 // Model for Google AI Studio (Gemini)
 const CANDIDATE_MODELS = [
-  "gemini-3.6-flash"
+  "gemini-3.1-flash-lite"
 ];
 
 /**
