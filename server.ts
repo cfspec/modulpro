@@ -170,7 +170,7 @@ app.get("/api/ai-status", (_req, res) => {
 // REGISTRI & PEMETAAN SINTAKS MODEL PEMBELAJARAN RESMI
 // ==========================================
 export interface PedagogicalModelDef {
-  key: 'pjbl' | 'pbl' | 'discovery' | 'inquiry' | 'cooperative';
+  key: 'pjbl' | 'pbl' | 'discovery' | 'inquiry' | 'cooperative' | 'tgt';
   officialName: string;
   totalSteps: number;
   syntaxSteps: string[];
@@ -222,16 +222,35 @@ DILARANG keras mengganti sintaks PjBL ini dengan sintaks PBL atau model lain!
     ],
     syntaxInstructionLKPD: (materi) => `
 ATURAN SINTAKS MUTLAK LKPD: PROJECT BASED LEARNING (PjBL)
-Kegiatan siswa dan lembar kerja pada LKPD WAJIB mengikuti tepat 6 (enam) tahapan sintaks resmi PjBL secara terurut:
-1. Pertanyaan Mendasar: Mengemukakan pertanyaan esensial & masalah kontekstual tentang "${materi}" yang memicu ide karya/proyek nyata.
-2. Mendesain Perencanaan Proyek: Merancang rencana proyek, pembagian peran kelompok, serta merinci alat dan bahan yang dibutuhkan.
-3. Menyusun Jadwal: Membuat tabel linimasa (timeline) pengerjaan proyek dari tahap perencanaan hingga produk selesai diuji.
-4. Memonitor Keaktifan & Perkembangan Proyek: Format checklist monitoring kemajuan proyek kelompok dan catatan konsultasi bimbingan guru.
-5. Menguji Hasil: Menguji fungsi, kelayakan, serta kriteria keberhasilan produk karya proyek yang dihasilkan dan persiapan presentasi/pameran.
-6. Evaluasi Pengalaman: Lembar refleksi atas kendala yang dihadapi, strategi pemecahan masalah, dan kesimpulan pembelajaran proyek.
+Penyusunan LKPD model PjBL wajib menerapkan kualitas aktivitas operasional, konkret, dan terintegrasi penuh mengikuti tepat 6 (enam) tahapan sintaks resmi berikut:
 
-Array "langkahLangkah" WAJIB memuat tepat 6 butir sesuai urutan sintaks resmi PjBL di atas.
-Array "lembarKerja" berisi 5-7 pertanyaan atau penugasan yang memandu peserta didik menyelesaikan setiap tahapan proyek tersebut.
+1. Pertanyaan Mendasar (Essential Question):
+   - Aktivitas Operasional: Siswa mengamati stimulus/wacana studi kasus kontekstual terkait "${materi}", mengidentifikasi permasalahan pokok nyata di lingkungan sekitar, dan merumuskan ide/gagasan karya nyata sebagai solusi pemecahan masalah.
+   - Format Lembar Kerja: Identifikasi tantangan autentik, perumusan pertanyaan esensial pengarah proyek, dan penetapan judul/spesifikasi produk karya kelompok. (ruangJawabanType: 'textarea')
+
+2. Mendesain Perencanaan Proyek (Designing Project Plan):
+   - Aktivitas Operasional: Siswa berkolaborasi menyepakati aturan main proyek, menetapkan pembagian peran anggota tim secara adil (Ketua Proyek, Perancang/Desainer, Pelaksana Produksi, Dokumentasi/Pelapor), serta membuat checklist kesiapan alat dan bahan yang diperlukan.
+   - Format Lembar Kerja: Format tabel pembagian peran tim dan checklist kesiapan alat-bahan pembuatan proyek "${materi}". (ruangJawabanType: 'tabel' atau 'checklist')
+
+3. Menyusun Jadwal (Creating Schedule & Timeline):
+   - Aktivitas Operasional: Kelompok menyusun linimasa (timeline) pengerjaan proyek dari tahap perencanaan, persiapan alat-bahan, produksi/pembuatan karya, uji coba awal, hingga presentasi karya dengan batas waktu terukur.
+   - Format Lembar Kerja: Tabel linimasa proyek terstruktur dengan format kolom: [No | Tahapan Kegiatan Proyek | Target Waktu / Hari ke- | Penanggung Jawab | Keterangan/Progres]. (ruangJawabanType: 'tabel')
+
+4. Memonitor Keaktifan & Perkembangan Proyek (Monitoring Progress):
+   - Aktivitas Operasional: Format pemantauan kemajuan pengerjaan proyek kelompok secara berkala, mencatat kendala teknis yang dihadapi, strategi pemecahan kendala, serta mencatat bimbingan/feedback konsultasi guru.
+   - Format Lembar Kerja: Lembar pemantauan progres berkala, checklist tahapan yang selesai, dan log catatan bimbingan guru. (ruangJawabanType: 'textarea' atau 'checklist')
+
+5. Menguji Hasil (Assessing the Outcome):
+   - Aktivitas Operasional: Menguji fungsi, keakuratan konsep, kelayakan, serta kriteria keberhasilan produk karya proyek yang dihasilkan, dan menyiapkan bahan pameran/presentasi kelompok.
+   - Format Lembar Kerja: Checklist rubrik pengujian kelayakan produk (aspek fungsi produk, ketepatan konsep materi, estetika/kerapian, daya guna) dan rangkuman poin paparan presentasi tim. (ruangJawabanType: 'checklist' atau 'tabel')
+
+6. Evaluasi Pengalaman (Evaluating Experience & Reflection):
+   - Aktivitas Operasional: Refleksi komprehensif atas seluruh pengalaman selama membuat proyek, mendiskusikan apa yang berhasil, kendala yang dihadapi, cara mengatasinya, serta simpulan konsep "${materi}" yang dipelajari melalui proyek.
+   - Format Lembar Kerja: Lembar evaluasi pengalaman belajar bermakna (lessons learned) dan kesimpulan esensial proyek. (ruangJawabanType: 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 6 butir instruksi operasional, diawali persis nomor dan nama sintaks resmi PjBL: "1. Pertanyaan Mendasar: ...", "2. Mendesain Perencanaan Proyek: ...", "3. Menyusun Jadwal: ...", "4. Memonitor Keaktifan & Perkembangan Proyek: ...", "5. Menguji Hasil: ...", "6. Evaluasi Pengalaman: ...".
+- Array "lembarKerja" WAJIB memuat tepat 6 butir penugasan terurut yang memandu siswa menyelesaikan masing-masing dari ke-6 tahapan sintaks di atas secara bertahap (1-to-1 mapping).
 `
   },
 
@@ -265,15 +284,31 @@ Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama sintaks 
     ],
     syntaxInstructionLKPD: (materi) => `
 ATURAN SINTAKS MUTLAK LKPD: PROBLEM BASED LEARNING (PBL)
-Kegiatan siswa dan lembar kerja pada LKPD WAJIB mengikuti tepat 5 (lima) tahapan sintaks resmi PBL secara terurut:
-1. Orientasi peserta didik pada masalah: Mengamati dan menelaah wacana masalah kontekstual / studi kasus autentik terkait "${materi}".
-2. Mengorganisasikan peserta didik untuk belajar: Membagi tugas anggota kelompok, mengidentifikasi rumusan masalah utama, dan menentukan fokus penyelidikan.
-3. Membimbing penyelidikan individu maupun kelompok: Mengumpulkan fakta, data lapangan / literatur pendukung untuk menganalisis akar masalah.
-4. Mengembangkan dan menyajikan hasil karya: Mendiskusikan alternatif solusi pemecahan masalah, menyusun laporan hasil karya/solusi, dan menyiapkan presentasi.
-5. Menganalisis dan mengevaluasi proses pemecahan masalah: Menilai kelebihan serta kelemahan solusi yang diajukan dan menyimpulkan hasil telaah masalah.
+Penyusunan LKPD model PBL wajib menerapkan aktivitas operasional yang runtut mengikuti tepat 5 (lima) tahapan sintaks resmi berikut:
 
-Array "langkahLangkah" WAJIB memuat tepat 5 butir sesuai urutan sintaks resmi PBL di atas.
-Array "lembarKerja" berisi 5-7 pertanyaan bertingkat (LotS ke HotS) yang membimbing peserta didik memecahkan masalah langkah demi langkah.
+1. Orientasi peserta didik pada masalah:
+   - Aktivitas Operasional: Menelaah wacana studi kasus kontekstual nyata terkait "${materi}", mencatat fakta-fakta kunci, dan merumuskan pertanyaan masalah utama (5W+1H) yang menantang pemikiran kritis siswa.
+   - Format Lembar Kerja: Identifikasi fakta masalah, perumusan pertanyaan fokus penyelidikan, dan dampak masalah jika tidak diatasi. (ruangJawabanType: 'textarea')
+
+2. Mengorganisasikan peserta didik untuk belajar:
+   - Aktivitas Operasional: Membagi peran tanggung jawab anggota kelompok penyelidik, merumuskan batasan ruang lingkup masalah yang akan ditelaah, dan menyusun rencana penelusuran sumber informasi.
+   - Format Lembar Kerja: Tabel pembagian peran kelompok (Ketua, Notulis, Penelusur Data, Analis) dan daftar rujukan/sumber informasi yang akan dikaji. (ruangJawabanType: 'tabel')
+
+3. Membimbing penyelidikan individu maupun kelompok:
+   - Aktivitas Operasional: Melakukan penelusuran fakta empiris, kajian teori literatur, atau wawancara/observasi terkait "${materi}", menganalisis faktor-faktor penyebab utama terjadinya masalah.
+   - Format Lembar Kerja: Tabel pengumpulan data bukti dan analisis akar penyebab masalah (faktor penyebab, bukti temuan, analisis dampak). (ruangJawabanType: 'tabel')
+
+4. Mengembangkan dan menyajikan hasil karya:
+   - Aktivitas Operasional: Merumuskan beberapa alternatif solusi pemecahan masalah, membandingkan kelebihan dan kelemahannya, memilih solusi terbaik, dan menyusun draf rekomendasi karya/laporan solusi untuk dipresentasikan.
+   - Format Lembar Kerja: Tabel komparasi alternatif solusi (opsi solusi, kelebihan, kelemahan, kelayakan) dan draf rekomendasi solusi kelompok. (ruangJawabanType: 'textarea' atau 'tabel')
+
+5. Menganalisis dan mengevaluasi proses pemecahan masalah:
+   - Aktivitas Operasional: Menilai efektivitas solusi yang diajukan, menanggapi pertanyaan/umpan balik dari kelompok lain, serta menarik simpulan konsep materi yang dipelajari dari proses pemecahan masalah.
+   - Format Lembar Kerja: Lembar evaluasi solusi, refleksi proses penyelidikan, dan kesimpulan konsep materi "${materi}". (ruangJawabanType: 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 5 butir instruksi operasional terurut diawali nama sintaks: "1. Orientasi peserta didik pada masalah: ...", "2. Mengorganisasikan peserta didik untuk belajar: ...", "3. Membimbing penyelidikan individu maupun kelompok: ...", "4. Mengembangkan dan menyajikan hasil karya: ...", "5. Menganalisis dan mengevaluasi proses pemecahan masalah: ...".
+- Array "lembarKerja" WAJIB memuat tepat 5 butir penugasan bertingkat yang membimbing siswa menyelesaikan ke-5 tahapan sintaks di atas secara bertahap (1-to-1 mapping).
 `
   },
 
@@ -310,16 +345,35 @@ Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama sintaks 
     ],
     syntaxInstructionLKPD: (materi) => `
 ATURAN SINTAKS MUTLAK LKPD: DISCOVERY LEARNING
-Kegiatan siswa dan lembar kerja pada LKPD WAJIB mengikuti tepat 6 (enam) tahapan sintaks resmi Discovery Learning secara terurut:
-1. Pemberian Rangsangan (Stimulation): Mengamati stimulus fenomena, grafik, gambar, atau sajian awal terkait "${materi}".
-2. Pernyataan/Identifikasi Masalah (Problem Statement): Menemukan persoalan pokok dan merumuskan hipotesis / praduga penemuan konsep.
-3. Pengumpulan Data (Data Collection): Mencari fakta, membaca sumber rujukan, atau mencatat data hasil pengamatan / eksperimen mandiri.
-4. Pengolahan Data (Data Processing): Mengolah data hasil eksplorasi, menafsirkan pola temuan, dan mendiskusikannya dalam kelompok.
-5. Pembuktian (Verification): Memverifikasi kebenaran hipotesis awal dengan membandingkannya terhadap konsep ilmiah yang valid.
-6. Menarik Simpulan/Generalisasi (Generalization): Merumuskan kesimpulan menyeluruh atas kaidah atau konsep materi yang telah ditemukan.
+Penyusunan LKPD model Discovery Learning wajib menerapkan aktivitas penemuan konsep mandiri yang runtut mengikuti tepat 6 (enam) tahapan sintaks resmi berikut:
 
-Array "langkahLangkah" WAJIB memuat tepat 6 butir sesuai urutan sintaks resmi Discovery Learning di atas.
-Array "lembarKerja" berisi 5-7 pertanyaan terarah yang menuntun penemuan konsep hingga pembuktian dan generalisasi.
+1. Pemberian Rangsangan (Stimulation):
+   - Aktivitas Operasional: Mengamati sajian stimulus kontekstual berupa fenomena, grafik, gambar perbandingan, atau data awal terkait "${materi}". Mencatat hal-hal janggal atau menarik yang membangkitkan rasa ingin tahu.
+   - Format Lembar Kerja: Catatan pengamatan stimulus awal dan hal menarik yang ingin diselidiki. (ruangJawabanType: 'textarea')
+
+2. Pernyataan/Identifikasi Masalah (Problem Statement):
+   - Aktivitas Operasional: Mengidentifikasi permasalahan pokok berdasarkan stimulus, merumuskan pertanyaan fokus penemuan, dan menyusun hipotesis/praduga jawaban sementara yang akan dibuktikan.
+   - Format Lembar Kerja: Rumusan pertanyaan identifikasi masalah dan kalimat hipotesis awal yang dapat diuji. (ruangJawabanType: 'textarea' atau 'text')
+
+3. Pengumpulan Data (Data Collection):
+   - Aktivitas Operasional: Melakukan eksplorasi mandiri/kelompok, membaca sumber rujukan materi, atau mencatat data hasil eksperimen/observasi nyata secara terstruktur.
+   - Format Lembar Kerja: Tabel pengumpulan data hasil eksplorasi/pengamatan (misal: No | Objek/Aspek yang Diamati | Data/Fakta Temuan | Keterangan). (ruangJawabanType: 'tabel')
+
+4. Pengolahan Data (Data Processing):
+   - Aktivitas Operasional: Mengolah, mengklasifikasikan, mengaitkan hubungan antarvariabel/antarkonsep, dan menafsirkan pola data hasil eksplorasi secara kelompok.
+   - Format Lembar Kerja: Panduan analisis data, pengelompokan temuan, dan interpretasi pola keterkaitan konsep materi. (ruangJawabanType: 'textarea' atau 'tabel')
+
+5. Pembuktian (Verification):
+   - Aktivitas Operasional: Memeriksa dan membandingkan hasil pengolahan data dengan rumusan hipotesis awal serta konsep teori ilmiah rujukan untuk menguji kebenaran temuan.
+   - Format Lembar Kerja: Analisis pembuktian hipotesis (Apakah data mendukung hipotesis? Berikan argumen ilmiah dan rujukannya). (ruangJawabanType: 'textarea')
+
+6. Menarik Simpulan/Generalisasi (Generalization):
+   - Aktivitas Operasional: Merumuskan kaidah umum, prinsip, atau dalil konsep materi "${materi}" yang berhasil ditemukan dan disimpulkan bersama secara utuh.
+   - Format Lembar Kerja: Lembar simpulan generalisasi konsep dan contoh penerapan konsep dalam kehidupan nyata. (ruangJawabanType: 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 6 butir instruksi operasional, diawali nama sintaks: "1. Pemberian Rangsangan (Stimulation): ...", "2. Pernyataan/Identifikasi Masalah (Problem Statement): ...", "3. Pengumpulan Data (Data Collection): ...", "4. Pengolahan Data (Data Processing): ...", "5. Pembuktian (Verification): ...", "6. Menarik Simpulan/Generalisasi (Generalization): ...".
+- Array "lembarKerja" WAJIB memuat tepat 6 butir penugasan terurut yang memandu siswa menemukan konsep langkah demi langkah (1-to-1 mapping).
 `
   },
 
@@ -356,16 +410,35 @@ Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama sintaks 
     ],
     syntaxInstructionLKPD: (materi) => `
 ATURAN SINTAKS MUTLAK LKPD: INQUIRY LEARNING
-Kegiatan siswa dan lembar kerja pada LKPD WAJIB mengikuti tepat 6 (enam) tahapan sintaks resmi Inquiry Learning secara terurut:
-1. Orientasi Masalah: Mengamati situasi fenomena ilmiah atau persoalan penyelidikan terbuka seputar "${materi}".
-2. Merumuskan Masalah: Menyusun pertanyaan penyelidikan/investigasi ilmiah secara tajam dan terfokus.
-3. Merumuskan Hipotesis: Mengajukan hipotesis atau jawaban sementara yang logis dan dapat diuji kebenarannya.
-4. Mengumpulkan Data: Melakukan pengamatan, investigasi data empiris, atau pengujian eksperimen terarah.
-5. Menguji Hipotesis: Menganalisis data bukti temuan untuk menilai apakah hipotesis diterima atau ditolak.
-6. Merumuskan Kesimpulan: Menarik simpulan ilmiah yang logis dan objektif berdasarkan hasil pengujian data.
+Penyusunan LKPD model Inquiry Learning wajib menerapkan prosedur investigasi ilmiah terstruktur mengikuti tepat 6 (enam) tahapan sintaks resmi berikut:
 
-Array "langkahLangkah" WAJIB memuat tepat 6 butir sesuai urutan sintaks resmi Inquiry Learning di atas.
-Array "lembarKerja" berisi 5-7 pertanyaan penyelidikan ilmiah yang memandu proses berpikir kritis berbasis data bukti.
+1. Orientasi Masalah:
+   - Aktivitas Operasional: Menelaah situasi ilmiah kontekstual seputar "${materi}" yang menimbulkan teka-teki ilmiah atau pertanyaan investigasi terbuka.
+   - Format Lembar Kerja: Telaah situasi ilmiah dan pencatatan fokus penyelidikan yang memicu rasa ingin tahu. (ruangJawabanType: 'textarea')
+
+2. Merumuskan Masalah:
+   - Aktivitas Operasional: Menyusun pertanyaan penyelidikan ilmiah yang terfokus, tajam, dan memuat variabel yang dapat diuji/diukur secara jelas.
+   - Format Lembar Kerja: Rumusan pertanyaan penelitian/investigasi ilmiah utama terkait "${materi}". (ruangJawabanType: 'text' atau 'textarea')
+
+3. Merumuskan Hipotesis:
+   - Aktivitas Operasional: Mengajukan hipotesis atau dugaan jawaban sementara yang rasional, berbasis penalaran awal konsep materi, dan siap diuji melalui data empiris.
+   - Format Lembar Kerja: Rumusan pernyataan hipotesis ilmiah yang dapat diverifikasi kebenarannya. (ruangJawabanType: 'textarea' atau 'text')
+
+4. Mengumpulkan Data:
+   - Aktivitas Operasional: Melaksanakan prosedur pengumpulan data ilmiah (melalui observasi, eksperimen laboratorium sederhana, atau penelusuran fakta literatur terpercaya).
+   - Format Lembar Kerja: Tabel pencatatan data hasil investigasi/eksperimen (misal: No | Perlakuan/Variabel | Data Pengamatan/Hasil | Catatan Analisis). (ruangJawabanType: 'tabel')
+
+5. Menguji Hipotesis:
+   - Aktivitas Operasional: Menganalisis data hasil pengamatan secara mendalam, membandingkannya dengan hipotesis awal, dan menentukan apakah hipotesis diterima atau ditolak beserta argumentasi ilmiahnya.
+   - Format Lembar Kerja: Lembar uji hipotesis berbasis data bukti (analisis data, konfirmasi hipotesis diterima/ditolak beserta alasannya). (ruangJawabanType: 'textarea')
+
+6. Merumuskan Kesimpulan:
+   - Aktivitas Operasional: Menarik kesimpulan ilmiah objektif berdasarkan hasil analisis data dan merangkum prinsip konsep "${materi}" yang terkonfirmasi.
+   - Format Lembar Kerja: Simpulan ilmiah hasil penyelidikan inkuiri dan implikasinya terhadap konsep pembelajaran. (ruangJawabanType: 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 6 butir instruksi operasional, diawali nama sintaks: "1. Orientasi Masalah: ...", "2. Merumuskan Masalah: ...", "3. Merumuskan Hipotesis: ...", "4. Mengumpulkan Data: ...", "5. Menguji Hipotesis: ...", "6. Merumuskan Kesimpulan: ...".
+- Array "lembarKerja" WAJIB memuat tepat 6 butir penugasan terurut yang memandu penyelidikan ilmiah langkah demi langkah (1-to-1 mapping).
 `
   },
 
@@ -402,16 +475,93 @@ Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama fase res
     ],
     syntaxInstructionLKPD: (materi) => `
 ATURAN SINTAKS MUTLAK LKPD: COOPERATIVE LEARNING
-Kegiatan siswa dan lembar kerja pada LKPD WAJIB mengikuti tepat 6 (enam) tahapan fase resmi Cooperative Learning secara terurut:
-1. Orientasi Tujuan & Motivasi Tim: Memahami misi penugasan kelompok bersama serta membangun komitmen kerja sama tim.
-2. Telaah Informasi Pengantar: Membaca dan menelaah informasi materi pengantar mengenai "${materi}" secara bersama.
-3. Pembagian Peran Kelompok: Menyepakati pembagian peran tanggung jawab aktif anggota tim (misal: koordinator tim, pencatat data, penganalisis konsep, juru bicara).
-4. Penyelidikan & Diskusi Kelompok: Bekerja sama secara aktif dan saling menjelaskan antarrekan kelompok untuk menyelesaikan lembar kerja tim.
-5. Evaluasi & Uji Pemahaman Tim: Mempresentasikan hasil pemufakatan kelompok di hadapan kelompok lain dan saling memberikan tanggapan.
-6. Refleksi & Penghargaan: Menilai kekompakan kolaborasi kelompok serta menerima apresiasi atas pencapaian terbaik tim.
+Penyusunan LKPD model Cooperative Learning wajib menekankan interdependensi positif dan tanggung jawab tim heterogen mengikuti tepat 6 (enam) tahapan fase resmi berikut:
 
-Array "langkahLangkah" WAJIB memuat tepat 6 butir sesuai urutan fase resmi Cooperative Learning di atas.
-Array "lembarKerja" berisi 5-7 pertanyaan atau tugas kolaboratif yang menuntut diskusi tim heterogen dan pembagian tanggung jawab bersama.
+1. Orientasi Tujuan & Motivasi Tim:
+   - Aktivitas Operasional: Menelaah misi belajar kelompok mengenai "${materi}", membangun komitmen gotong royong, dan menyepakati target keberhasilan belajar bersama.
+   - Format Lembar Kerja: Pernyataan misi tim dan komitmen kerja sama aktif kelompok. (ruangJawabanType: 'textarea')
+
+2. Telaah Informasi Pengantar:
+   - Aktivitas Operasional: Membaca teks materi pengantar bersama tim, mengidentifikasi konsep-konsep kunci, dan mendiskusikan hal-hal yang belum dipahami antarrekan.
+   - Format Lembar Kerja: Peta pikiran (mind map) atau ringkasan telaah konsep kunci pengantar materi. (ruangJawabanType: 'textarea')
+
+3. Pembagian Peran Kelompok:
+   - Aktivitas Operasional: Menetapkan pembagian tugas peran spesifik setiap anggota kelompok (misal: Koordinator Tim, Notulis/Pencatat, Analis Konsep, Juru Bicara/Presenter) agar tidak ada anggota yang pasif.
+   - Format Lembar Kerja: Tabel pembagian peran, nama anggota, dan tanggung jawab tugas tim. (ruangJawabanType: 'tabel')
+
+4. Penyelidikan & Diskusi Kelompok:
+   - Aktivitas Operasional: Berdiskusi secara mendalam untuk menyelesaikan tugas pemecahan masalah bersama, saling mengajarkan konsep (peer tutoring), dan memastikan setiap anggota menguasai materi.
+   - Format Lembar Kerja: Lembar tugas analisis kolaboratif dan checklist verifikasi pemahaman anggota kelompok. (ruangJawabanType: 'textarea' atau 'checklist')
+
+5. Evaluasi & Uji Pemahaman Tim:
+   - Aktivitas Operasional: Mempresentasikan hasil kerja sama kelompok di depan kelas, menjawab pertanyaan tanggapan kelompok lain, dan mengukur ketercapaian pemahaman tim.
+   - Format Lembar Kerja: Rangkuman paparan tim dan lembar catatan umpan balik dari kelompok lain. (ruangJawabanType: 'textarea')
+
+6. Refleksi & Penghargaan Tim:
+   - Aktivitas Operasional: Menilai kualitas kerja sama tim (peer assessment), mengapresiasi kontribusi setiap rekan kelompok, dan menyimpulkan hasil belajar materi.
+   - Format Lembar Kerja: Lembar evaluasi kekompakan tim dan refleksi nilai gotong royong dalam belajar "${materi}". (ruangJawabanType: 'checklist' atau 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 6 butir instruksi operasional diawali nama fase: "1. Menyampaikan Tujuan dan Memotivasi Siswa: ...", "2. Menyajikan Informasi (Materi Pengantar): ...", "3. Mengorganisasikan Siswa ke dalam Kelompok-Kelompok Belajar: ...", "4. Membimbing Kelompok Bekerja dan Belajar: ...", "5. Evaluasi: ...", "6. Memberikan Penghargaan & Refleksi: ...".
+- Array "lembarKerja" WAJIB memuat tepat 6 butir penugasan kolaboratif yang terintegrasi (1-to-1 mapping).
+`
+  },
+
+  tgt: {
+    key: 'tgt',
+    officialName: 'Teams Games Tournament (TGT)',
+    totalSteps: 5,
+    syntaxSteps: [
+      '1. Penyajian Kelas (Class Presentation)',
+      '2. Belajar Kelompok (Team Study / Work)',
+      '3. Turnamen / Permainan Akademik (Academic Game Tournament)',
+      '4. Perhitungan Skor Tim (Team Scoring)',
+      '5. Penghargaan Kelompok (Team Recognition)'
+    ],
+    syntaxInstructionModul: (materi) => `
+ATURAN SINTAKS MUTLAK: MODEL TEAMS GAMES TOURNAMENT (TGT)
+Kegiatan Inti WAJIB mengikuti 5 fase resmi Teams Games Tournament (De Vries & Slavin) secara runtut:
+1. Penyajian Kelas (Class Presentation): Guru menyajikan materi pokok ${materi} secara komunikatif dan interaktif.
+2. Belajar Kelompok (Team Study / Work): Peserta didik belajar bersama dalam kelompok heterogen, saling menguji pemahaman konsep sebelum turnamen.
+3. Turnamen / Permainan Akademik (Academic Game Tournament): Peserta didik berkompetisi di meja turnamen akademik menjawab kartu-kartu soal bertingkat secara sportif.
+4. Perhitungan Skor Tim (Team Scoring): Guru dan peserta didik merekap perolehan skor anggota dari meja turnamen ke skor total tim.
+5. Penghargaan Kelompok (Team Recognition): Guru memberikan apresiasi dan penghargaan rekognisi (Super Team, Great Team, Good Team) serta refleksi sportifitas.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama fase resmi tersebut di atas.
+`,
+    contohIntiModul: (materi) => [
+      `1. Penyajian Kelas (Class Presentation): Guru menyajikan konsep kunci dan kaidah penting materi ${materi} secara visual dan kontekstual.`,
+      `2. Belajar Kelompok (Team Study / Work): Peserta didik bekerja sama dalam kelompok heterogen, saling mengajarkan dan menguji latihan soal untuk persiapan turnamen.`,
+      `3. Turnamen / Permainan Akademik (Academic Game Tournament): Peserta didik bertanding di meja-meja turnamen akademik menjawab kartu soal secara bergiliran dengan sportif.`,
+      `4. Perhitungan Skor Tim (Team Scoring): Guru bersama peserta didik menghitung total poin kontribusi tiap anggota untuk menentukan perolehan skor kelompok.`,
+      `5. Penghargaan Kelompok (Team Recognition): Guru mengumumkan kelompok berprestasi dengan predikat Super Team dan memberikan penghargaan atas kerja sama dan kejujuran.`
+    ],
+    syntaxInstructionLKPD: (materi) => `
+ATURAN SINTAKS MUTLAK LKPD: TEAMS GAMES TOURNAMENT (TGT)
+Penyusunan LKPD model TGT wajib memadukan belajar kooperatif tim dengan turnamen akademik bertingkat mengikuti tepat 5 (lima) tahapan fase resmi berikut:
+
+1. Penyajian Kelas (Class Presentation):
+   - Aktivitas Operasional: Menyimak paparan pengantar konsep pokok materi "${materi}" dari guru, mencatat kaidah, prinsip, dan rumus/kata kunci esensial yang akan digunakan dalam turnamen akademik.
+   - Format Lembar Kerja: Lembar catatan konsep kunci dan rangkuman prinsip materi persiapan turnamen. (ruangJawabanType: 'textarea')
+
+2. Belajar Kelompok (Team Study / Work):
+   - Aktivitas Operasional: Belajar bersama dalam kelompok heterogen (4-5 siswa), saling melatih, saling menguji penguasaan materi teman sekelompok (peer tutoring), dan memastikan setiap anggota kelompok siap bertanding di meja turnamen.
+   - Format Lembar Kerja: Lembar latihan uji pemahaman antarrekan tim dan checklist kesiapan anggota kelompok. (ruangJawabanType: 'textarea' atau 'checklist')
+
+3. Turnamen / Permainan Akademik (Academic Game Tournament):
+   - Aktivitas Operasional: Peserta didik bertanding di meja turnamen akademik melawan perwakilan kelompok lain yang berkemampuan sepadan, mengambil kartu soal secara acak, menjawab soal bernomor dengan sportif, dan mencatat perolehan poin per ronde.
+   - Format Lembar Kerja: Format lembar pencatatan kartu soal turnamen (Nomor Meja | Nomor Kartu Soal | Jawaban Siswa | Poin Ronde yang Diperoleh). (ruangJawabanType: 'tabel')
+
+4. Perhitungan Skor Tim (Team Scoring):
+   - Aktivitas Operasional: Kembali ke kelompok asal, merekapitulasi total poin kontribusi yang disumbangkan oleh setiap anggota kelompok dari masing-masing meja turnamen, dan menghitung skor rata-rata/total kelompok.
+   - Format Lembar Kerja: Tabel rekapitulasi perolehan skor tim: [No | Nama Anggota Tim | Nomor Meja Turnamen | Skor Poin Individu | Kontribusi ke Tim]. (ruangJawabanType: 'tabel')
+
+5. Penghargaan Kelompok (Team Recognition):
+   - Aktivitas Operasional: Menghitung kualifikasi penghargaan tim (Super Team, Great Team, Good Team), merayakan keberhasilan bersama, serta merefleksikan nilai sportifitas, kejujuran, dan kerja keras tim dalam belajar "${materi}".
+   - Format Lembar Kerja: Lembar penetapan predikat kelompok dan refleksi sportifitas kompetisi serta kerja sama. (ruangJawabanType: 'textarea')
+
+KETENTUAN ARRAY WAJIB:
+- Array "langkahLangkah" WAJIB memuat tepat 5 butir instruksi operasional diawali nama fase: "1. Penyajian Kelas (Class Presentation): ...", "2. Belajar Kelompok (Team Study / Work): ...", "3. Turnamen / Permainan Akademik (Academic Game Tournament): ...", "4. Perhitungan Skor Tim (Team Scoring): ...", "5. Penghargaan Kelompok (Team Recognition): ...".
+- Array "lembarKerja" WAJIB memuat tepat 5 butir penugasan turnamen yang terurut dan bertahap (1-to-1 mapping).
 `
   }
 };
@@ -430,7 +580,7 @@ export function resolveModelPembelajaran(modelRaw?: string): ModelResolutionResu
   if (!raw) {
     return {
       success: false,
-      error: 'Model pembelajaran wajib dipilih atau diisi. Silakan pilih salah satu model pembelajaran resmi yang didukung: Project Based Learning (PjBL), Problem Based Learning (PBL), Discovery Learning, Inquiry Learning, atau Cooperative Learning.'
+      error: 'Model pembelajaran wajib dipilih atau diisi. Silakan pilih salah satu dari 6 model pembelajaran resmi yang didukung: Project Based Learning (PjBL), Problem Based Learning (PBL), Discovery Learning, Inquiry Learning, Cooperative Learning, atau Teams Games Tournament (TGT).'
     };
   }
 
@@ -472,7 +622,17 @@ export function resolveModelPembelajaran(modelRaw?: string): ModelResolutionResu
     return { success: true, definition: PEDAGOGICAL_MODELS.inquiry };
   }
 
-  // 5. Cooperative Learning
+  // 5. Teams Games Tournament (TGT) - Dicek sebelum cooperative umum
+  if (
+    normalized.includes('tgt') ||
+    normalized.includes('teams games tournament') ||
+    normalized.includes('team game tournament') ||
+    normalized.includes('turnamen')
+  ) {
+    return { success: true, definition: PEDAGOGICAL_MODELS.tgt };
+  }
+
+  // 6. Cooperative Learning (Varian STAD, Jigsaw, TPS, NHT, dll)
   if (
     normalized.includes('cooperative') ||
     normalized.includes('kooperatif') ||
@@ -480,7 +640,6 @@ export function resolveModelPembelajaran(modelRaw?: string): ModelResolutionResu
     normalized.includes('jigsaw') ||
     normalized.includes('tps') ||
     normalized.includes('think pair share') ||
-    normalized.includes('tgt') ||
     normalized.includes('nht')
   ) {
     return { success: true, definition: PEDAGOGICAL_MODELS.cooperative };
@@ -488,7 +647,7 @@ export function resolveModelPembelajaran(modelRaw?: string): ModelResolutionResu
 
   return {
     success: false,
-    error: `Model pembelajaran "${raw}" belum didukung oleh sistem. Model yang saat ini didukung secara resmi adalah: Project Based Learning (PjBL), Problem Based Learning (PBL), Discovery Learning, Inquiry Learning, dan Cooperative Learning. Silakan pilih salah satu model tersebut.`
+    error: `Model pembelajaran "${raw}" belum didukung oleh sistem. Model yang saat ini didukung secara resmi adalah: Project Based Learning (PjBL), Problem Based Learning (PBL), Discovery Learning, Inquiry Learning, Cooperative Learning, dan Teams Games Tournament (TGT). Silakan pilih salah satu model tersebut.`
   };
 }
 
@@ -624,38 +783,59 @@ app.post("/api/generate-lkpd", async (req, res) => {
       : '';
 
     const prompt = `
-Anda adalah Pakar Pengembang Kurikulum dan Bahan Ajar Resmi Kurikulum Merdeka Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi (Kemendikbudristek) dan Kementerian Agama (Kemenag - Madrasah) Indonesia.
-Tugas Anda adalah menyusun Lembar Kerja Peserta Didik (LKPD) yang sangat terstruktur, kontekstual, inklusif, berpusat pada peserta didik (student-centered), dan dioptimalkan khusus untuk model pembelajaran yang dipilih.
+Anda adalah Pakar Pengembang Kurikulum dan Perancang Bahan Ajar Resmi Kurikulum Merdeka Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi (Kemendikbudristek) dan Kementerian Agama (Kemenag - Madrasah) Indonesia.
+Tugas Anda adalah menyusun Lembar Kerja Peserta Didik (LKPD) yang SANGAT OPERASIONAL, KAYA AKTIVITAS KONKRET, BERPUSAT PADA PESERTA DIDIK (STUDENT-CENTERED), dan MENERAPKAN SINTAKS RESMI SECARA PRESISI DAN MENYELURUH.
 
-Data Input LKPD:
+DATA INPUT LKPD:
 - Jenjang Sekolah / Madrasah: ${tingkatSekolah || 'SD/MI / SMP/MTs / SMA/MA/SMK'}
-- Kelas: Kelas ${kelas || 'Sesuai Fase'} (${fase || 'Fase A/B/C/D/E/F'})
+- Kelas / Fase: Kelas ${kelas || 'Sesuai Fase'} (${fase || 'Fase A/B/C/D/E/F'})
 - Mata Pelajaran: ${mataPelajaran}
 - Materi Pokok / Topik: ${materiPokok}
-- Model Pembelajaran: ${modelDef.officialName}
-- Tujuan Pembelajaran (TP): ${tujuanPembelajaran}
-- Tipe LKPD / Jenis Aktivitas: ${jenisAktivitasText}
+- Model Pembelajaran Terpilih: ${modelDef.officialName} (Wajib ${modelDef.totalSteps} Tahapan Sintaks Resmi)
+- Tujuan Pembelajaran (TP) dari Guru: "${tujuanPembelajaran}"
+- Jenis Aktivitas LKPD: ${jenisAktivitasText}
 
 ${instruksiSintaksLKPD}${praktikumAddition}
 
-Persyaratan Regulasi & Struktur LKPD:
-1. Mengacu pada Keputusan Kepala BSKAP Kemendikbudristek No. 032/H/KR/2024 & Panduan Pembelajaran Kemenag tentang Kurikulum Merdeka.
-2. Identitas Lengkap (Judul menarik, Sub Judul, Alokasi Waktu misal 2x45 menit, Petunjuk penggunaan yang jelas, modelPembelajaran: "${modelDef.officialName}").
-3. Tujuan Pembelajaran (3-5 poin rasional selaras dengan TP input).
-4. Materi Ringkas / Orientasi Masalah: Teks wacana kontekstual yang relevan dan dekat dengan kehidupan sehari-hari siswa / Profil Pelajar Pancasila, beserta kata kunci utama.
-5. Kegiatan Siswa berbasis sintaks Model Pembelajaran ${modelDef.officialName}:
-   - "langkahLangkah": WAJIB memuat tepat ${modelDef.totalSteps} butir tahapan kegiatan yang diawali persis dengan nama sintaks resmi ${modelDef.officialName} secara terurut.
-   - "lembarKerja": Berisi 5-7 pertanyaan atau lembar tugas bertingkat (LotS ke HotS) yang menuntun siswa menyelesaikan setiap tahapan sintaks model tersebut.
-6. Soal Refleksi Siswa (3 pertanyaan reflektif).
-7. CATATAN PENTING: DILARANG keras membuat kunci jawaban atau rubrik guru agar output sangat fokus bagi peserta didik dan sangat hemat token.
+PEDOMAN UTAMA KUALITAS AKTIVITAS LKPD (STANDAR EXCELLENCE):
+1. Menjaga Relevansi Tujuan Pembelajaran:
+   - Jaga makna dan fokus Tujuan Pembelajaran (TP) yang diinput oleh guru. Uraikan menjadi 3-4 indikator capaian konkret dengan Kata Kerja Operasional (KKO) yang terukur dan mencakup ranah HOTS (Analisis, Evaluasi, atau Kreasi).
+2. Orientasi Masalah & Stimulus Kontekstual:
+   - "orientasiMasalah": Wajib menyajikan narasi studi kasus autentik / fenomena kontekstual nyata (2-3 paragraf kaya konteks) yang dekat dengan kehidupan sehari-hari siswa jenjang ${tingkatSekolah || 'ini'}, memancing empati, rasa ingin tahu, dan pemikiran kritis.
+   - "pembahasanUtama": Ringkasan konsep materi esensial (2-3 paragraf) yang padat kaidah, prinsip ilmiah, atau materi pokok sebagai bekal dasar siswa mengerjakan tugas.
+   - "kataKunci": 4-6 kata kunci penting materi.
+3. Langkah-Langkah Kegiatan Siswa ("langkahLangkah"):
+   - WAJIB memuat TEPAT ${modelDef.totalSteps} BUTIR tahapan kegiatan yang berurutan sesuai sintaks resmi ${modelDef.officialName}.
+   - Setiap butir WAJIB diawali persis dengan nomor dan nama sintaks: "1. [Nama Sintaks]: [Uraian instruksi kegiatan operasional apa yang harus dilakukan siswa bersama kelompoknya]".
+4. Lembar Kerja Penugasan ("lembarKerja"):
+   - WAJIB memuat TEPAT ${modelDef.totalSteps} BUTIR penugasan operasional yang berkorespondensi 1-ke-1 dengan setiap tahapan sintaks ${modelDef.officialName}.
+   - Format setiap butir penugasan:
+     * "no": Angka urut 1 sampai ${modelDef.totalSteps}.
+     * "pertanyaan": Penugasan operasional konkret yang diawali nama sintaks dalam tanda kurung siku, misal: "[${modelDef.syntaxSteps[0] || 'Tahap 1'}] [Instruksi penugasan spesifik, studi kasus, atau pertanyaan pemantik terarah]". DILARANG membuat pertanyaan dangkal atau teoritis satu kalimat!
+     * "petunjukIsian": Panduan teknis pengerjaan yang operasional. 
+       - Jika membutuhkan Tabel, sebutkan format kolom yang wajib dibuat siswa (misal: "Buatlah tabel dengan kolom: [No | Aspek | Hasil Pengamatan | Keterangan]").
+       - Jika membutuhkan Checklist, sebutkan daftar aspek/indikator yang wajib diperiksa siswa.
+       - Jika pertanyaan analitis, berikan 2-3 pertanyaan penuntun (guiding questions) berpikir tingkat tinggi.
+     * "ruangJawabanType": Pilih tipe format yang paling tepat:
+       - 'tabel': Untuk perencanaan jadwal, pembagian peran, pengumpulan data eksperimen/observasi, komparasi solusi, rekapitulasi turnamen.
+       - 'checklist': Untuk kesiapan alat/bahan, monitoring progres tugas kelompok, kriteria keberhasilan produk, peer review tim.
+       - 'textarea': Untuk analisis masalah mendalam, perumusan ide gagasan, evaluasi solusi, simpulan generalisasi, dan refleksi pengalaman.
+       - 'text': Untuk rumusan pertanyaan masalah atau hipotesis ringkas.
+     * "opsiPilihan": Jika 'checklist' atau 'pilihan_ganda', sediakan 3-5 pilihan indikator/aspek kontekstual terkait materi. Jika tidak, kosongkan [].
+5. Soal Refleksi Siswa ("soalRefleksi"):
+   - Tepat 3 butir pertanyaan refleksi diri siswa yang mendalam (bukan klise), mencakup:
+     1) Konsep materi paling esensial dan bermakna yang berhasil dipahami.
+     2) Kendala/tantangan yang dihadapi saat berkolaborasi dalam sintaks ${modelDef.officialName} serta bagaimana kelompok mengatasinya.
+     3) Komitmen penerapan atau aksi nyata konsep ${materiPokok} dalam kehidupan sehari-hari.
+6. LARANGAN: DILARANG membuat kunci jawaban atau rubrik guru di dalam lembar kerja ini agar output sepenuhnya berfokus pada siswa dan hemat token.
 
-Berikan output dalam format JSON sesuai schema.
+Hasilkan dokumen LKPD dalam format JSON yang valid sesuai schema di bawah ini.
 `;
 
     const response = await generateContentWithFallback(ai, {
       contents: prompt,
       config: {
-        systemInstruction: `Anda adalah pakar pembuat Lembar Kerja Peserta Didik (LKPD) resmi Kemendikbudristek & Kemenag Kurikulum Merdeka yang ahli menerapkan sintaks ${modelDef.officialName}.`,
+        systemInstruction: `Anda adalah Master Kurikulum & Desainer Lembar Kerja Peserta Didik (LKPD) Kurikulum Merdeka Kemendikbudristek & Kemenag RI. Anda ahli merancang aktivitas pembelajaran operasional yang kaya dengan checklist, tabel kerja, pertanyaan panduan HOTS, dan penerapan ketat sintaks ${modelDef.officialName}.`,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -746,9 +926,157 @@ Berikan output dalam format JSON sesuai schema.
       year: "numeric",
     });
 
-    // Validasi jaminan model pembelajaran pada identitas hasil
-    if (resultData.identitas) {
+    // =========================================================================
+    // VALIDASI KUALITAS & NORMALISASI TERARAH LKPD (SYNTAX & COMPATIBILITY CHECK)
+    // =========================================================================
+    
+    // 1. Identitas & Model Pembelajaran Jaminan
+    if (!resultData.identitas || typeof resultData.identitas !== "object") {
+      resultData.identitas = {
+        judul: `LKPD: ${materiPokok}`,
+        subJudul: `Aktivitas Berbasis ${modelDef.officialName} pada Mata Pelajaran ${mataPelajaran}`,
+        mataPelajaran: mataPelajaran,
+        tingkatKelasFase: `${tingkatSekolah || 'Sekolah'} - Kelas ${kelas || ''} (${fase || ''})`,
+        alokasiWaktu: '2 x 45 Menit',
+        modelPembelajaran: modelDef.officialName,
+        petunjukPenggunaan: [
+          'Berdoalah sebelum memulai kegiatan belajar bersama kelompok.',
+          'Bacalah orientasi masalah dan materi ringkas dengan seksama.',
+          'Ikuti setiap tahapan langkah kegiatan secara berurutan dan bagi tugas secara adil.',
+          'Kerjakan seluruh tugas lembar kerja dengan aktif, jujur, dan penuh tanggung jawab.',
+          'Konsultasikan kepada guru jika terdapat instruksi yang belum dipahami.'
+        ]
+      };
+    } else {
       resultData.identitas.modelPembelajaran = modelDef.officialName;
+      if (!Array.isArray(resultData.identitas.petunjukPenggunaan) || resultData.identitas.petunjukPenggunaan.length === 0) {
+        resultData.identitas.petunjukPenggunaan = [
+          'Berdoalah sebelum memulai kegiatan belajar bersama rekan sekelompok.',
+          'Cermati orientasi stimulus masalah dan ringkasan materi sebagai landasan penyelidikan.',
+          'Laksanakan setiap tahapan langkah aktivitas sintaks secara runtut dan kolaboratif.',
+          'Selesaikan tugas lembar kerja secara aktif dan bertanggung jawab.',
+          'Mintalah bimbingan guru apabila menghadapi kendala dalam diskusi kelompok.'
+        ];
+      }
+    }
+
+    // 2. Tujuan Pembelajaran
+    if (!Array.isArray(resultData.tujuanPembelajaran) || resultData.tujuanPembelajaran.length === 0) {
+      resultData.tujuanPembelajaran = [
+        `Memahami konsep esensial materi ${materiPokok} melalui tahapan model ${modelDef.officialName}.`,
+        `Menganalisis dan memecahkan permasalahan kontekstual seputar ${materiPokok} secara kritis dan kolaboratif.`,
+        `Menyajikan hasil karya/solusi kelompok serta merefleksikan proses belajar secara komprehensif.`
+      ];
+    }
+
+    // 3. Materi Ringkas & Orientasi Masalah
+    if (!resultData.materiRingkas || typeof resultData.materiRingkas !== "object") {
+      resultData.materiRingkas = {
+        orientasiMasalah: `Perhatikan situasi nyata berikut terkait materi ${materiPokok}. Dalam kehidupan sehari-hari, kita sering menjumpai fenomena kontekstual yang memerlukan penalaran kritis dan pemecahan masalah kolaboratif. Diskusikan kasus ini bersama rekan kelompok Anda.`,
+        pembahasanUtama: `Materi ${materiPokok} memiliki prinsip-prinsip mendasar yang menjadi rujukan dalam penyelidikan dan penyelesaian tugas pada LKPD ini. Pahami kaidah-kaidah kunci untuk menghasilkan karya atau solusi yang tepat.`,
+        kataKunci: [materiPokok, modelDef.officialName, 'Analisis', 'Kolaborasi', 'Evaluasi']
+      };
+    } else {
+      if (!resultData.materiRingkas.orientasiMasalah) {
+        resultData.materiRingkas.orientasiMasalah = `Amati dan telaah permasalahan kontekstual seputar ${materiPokok} yang disajikan untuk memandu aktivitas kelompok.`;
+      }
+      if (!resultData.materiRingkas.pembahasanUtama) {
+        resultData.materiRingkas.pembahasanUtama = `Ringkasan materi ${materiPokok} sebagai dasar pemahaman dalam melaksanakan seluruh rangkaian kegiatan belajar.`;
+      }
+      if (!Array.isArray(resultData.materiRingkas.kataKunci) || resultData.materiRingkas.kataKunci.length === 0) {
+        resultData.materiRingkas.kataKunci = [materiPokok, 'Konsep Utama', 'Analisis', 'Solusi'];
+      }
+    }
+
+    // 4. Validasi Kegiatan Siswa & Sintaks Model
+    if (!resultData.kegiatanSiswa || typeof resultData.kegiatanSiswa !== "object") {
+      resultData.kegiatanSiswa = {
+        namaKegiatan: `Aktivitas Belajar ${modelDef.officialName} - ${materiPokok}`,
+        jenisKegiatan: jenisAktivitasText,
+        langkahLangkah: [],
+        lembarKerja: []
+      };
+    }
+
+    // Validasi langkah-langkah kegiatan: pastikan ada dan sesuai sintaks resmi model
+    const existingSteps = Array.isArray(resultData.kegiatanSiswa.langkahLangkah)
+      ? resultData.kegiatanSiswa.langkahLangkah.filter((s: any) => typeof s === "string" && s.trim() !== "")
+      : [];
+
+    if (existingSteps.length < modelDef.totalSteps) {
+      // Auto-repair terarah agar urutan dan nama sintaks lengkap dan presisi
+      resultData.kegiatanSiswa.langkahLangkah = modelDef.syntaxSteps.map((stepOfficial, idx) => {
+        const rawStepName = stepOfficial.replace(/^\d+\.\s*/, '').toLowerCase().slice(0, 10);
+        const matched = existingSteps.find(s => s.toLowerCase().includes(rawStepName));
+        if (matched) return matched;
+        return `${stepOfficial}: Melaksanakan rangkaian kegiatan penyelidikan dan penugasan terstruktur secara kolaboratif seputar materi ${materiPokok}.`;
+      });
+    }
+
+    // Validasi lembar kerja pertanyaan/penugasan
+    const validRuangTypes = ['text', 'textarea', 'checklist', 'tabel', 'pilihan_ganda'];
+    const existingQuestions = Array.isArray(resultData.kegiatanSiswa.lembarKerja)
+      ? resultData.kegiatanSiswa.lembarKerja
+      : [];
+
+    if (existingQuestions.length < modelDef.totalSteps) {
+      // Auto-repair terarah agar lembar kerja mencakup setiap tahap sintaks
+      resultData.kegiatanSiswa.lembarKerja = modelDef.syntaxSteps.map((stepOfficial, idx) => {
+        const existing = existingQuestions[idx];
+        if (existing && existing.pertanyaan && typeof existing.pertanyaan === 'string') {
+          const rawType = (existing.ruangJawabanType || '').toLowerCase().trim();
+          const cleanType = validRuangTypes.includes(rawType) ? rawType : (idx === 1 || idx === 2 ? 'tabel' : 'textarea');
+          return {
+            no: idx + 1,
+            pertanyaan: existing.pertanyaan.includes('[') ? existing.pertanyaan : `[${stepOfficial}] ${existing.pertanyaan}`,
+            petunjukIsian: existing.petunjukIsian || 'Tuliskan hasil diskusi dan kerja kelompok Anda secara terperinci.',
+            ruangJawabanType: cleanType,
+            opsiPilihan: Array.isArray(existing.opsiPilihan) ? existing.opsiPilihan : []
+          };
+        }
+        // Fallback default terarah per tahap sintaks
+        const defaultType = (idx === 1 || idx === 2) ? 'tabel' : (idx === 3 ? 'checklist' : 'textarea');
+        return {
+          no: idx + 1,
+          pertanyaan: `[${stepOfficial}] Lakukan analisis dan selesaikan penugasan kelompok untuk tahapan ini terkait topik "${materiPokok}".`,
+          petunjukIsian: defaultType === 'tabel' 
+            ? 'Isilah tabel kerja dengan mencantumkan kolom-kolom aspek pengamatan atau perencanaan secara rapi.'
+            : 'Jawablah dengan argumentasi yang jelas dan diskusikan bersama anggota kelompok.',
+          ruangJawabanType: defaultType,
+          opsiPilihan: []
+        };
+      });
+    } else {
+      // Normalisasi pertanyaan yang ada
+      resultData.kegiatanSiswa.lembarKerja = existingQuestions.map((q: any, idx: number) => {
+        const rawType = (q.ruangJawabanType || '').toLowerCase().trim();
+        const cleanType = validRuangTypes.includes(rawType) ? rawType : 'textarea';
+        const officialStepName = modelDef.syntaxSteps[idx] || `Tahap ${idx + 1}`;
+        let cleanPertanyaan = typeof q.pertanyaan === 'string' && q.pertanyaan.trim() !== ''
+          ? q.pertanyaan.trim()
+          : `Penugasan Tahap ${idx + 1} (${materiPokok})`;
+        if (!cleanPertanyaan.includes('[')) {
+          cleanPertanyaan = `[${officialStepName}] ${cleanPertanyaan}`;
+        }
+        return {
+          no: typeof q.no === 'number' ? q.no : idx + 1,
+          pertanyaan: cleanPertanyaan,
+          petunjukIsian: typeof q.petunjukIsian === 'string' && q.petunjukIsian.trim() !== ''
+            ? q.petunjukIsian.trim()
+            : 'Tuliskan hasil kerja kelompok secara lengkap dan sistematis.',
+          ruangJawabanType: cleanType,
+          opsiPilihan: Array.isArray(q.opsiPilihan) ? q.opsiPilihan : []
+        };
+      });
+    }
+
+    // 5. Validasi Soal Refleksi Siswa
+    if (!Array.isArray(resultData.soalRefleksi) || resultData.soalRefleksi.length < 3) {
+      resultData.soalRefleksi = [
+        `Apa konsep materi paling bermakna yang Anda dan kelompok peroleh mengenai "${materiPokok}" hari ini?`,
+        `Tantangan apa yang Anda hadapi selama berkolaborasi dalam tahapan model ${modelDef.officialName}, dan bagaimana cara kelompok mengatasinya?`,
+        `Bagaimana Anda akan menerapkan pemahaman atau karya yang telah dihasilkan dalam kehidupan sehari-hari?`
+      ];
     }
 
     res.json(resultData);
