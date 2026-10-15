@@ -442,15 +442,60 @@ export const ModulForm: React.FC<ModulFormProps> = ({
           </div>
 
           {/* Row 8: Model Pembelajaran */}
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-1.5">Model Pembelajaran</label>
+          <div className="space-y-2">
+            <label className="block text-gray-300 text-sm font-medium">Model Pembelajaran</label>
             <input
               type="text"
               value={formData.modelPembelajaran}
               onChange={(e) => setFormData({ ...formData, modelPembelajaran: e.target.value })}
-              placeholder="PBL, PjBL, Discovery Learning, dll"
+              placeholder="Pilih di bawah atau ketik: Project Based Learning (PjBL), PBL, dll"
               className="w-full bg-[#181f32] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500"
             />
+            {/* Quick selection buttons */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { label: 'Project Based Learning (PjBL)', val: 'Project Based Learning (PjBL)' },
+                { label: 'Problem Based Learning (PBL)', val: 'Problem Based Learning (PBL)' },
+                { label: 'Discovery Learning', val: 'Discovery Learning' },
+                { label: 'Inquiry Learning', val: 'Inquiry Learning' },
+              ].map((m) => {
+                const isSelected = formData.modelPembelajaran?.toLowerCase().includes(m.val.toLowerCase().slice(0, 5));
+                return (
+                  <button
+                    key={m.val}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, modelPembelajaran: m.val })}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-purple-600/30 text-purple-200 border-purple-500/80'
+                        : 'bg-[#181f32] text-gray-400 border-gray-700/80 hover:border-gray-500 hover:text-white'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* PjBL Highlight Box when selected */}
+            {(formData.modelPembelajaran?.toLowerCase().includes('pjbl') ||
+              formData.modelPembelajaran?.toLowerCase().includes('project') ||
+              formData.modelPembelajaran?.toLowerCase().includes('proyek')) && (
+              <div className="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3 text-xs text-purple-200 space-y-1.5 animate-fadeIn">
+                <div className="flex items-center gap-1.5 font-bold text-purple-300">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Sintaks Resmi PjBL Kurikulum Merdeka (6 Tahap) Diterapkan:</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-purple-200/90 font-mono">
+                  <span>1. Pertanyaan Mendasar</span>
+                  <span>2. Mendesain Perencanaan Proyek</span>
+                  <span>3. Menyusun Jadwal</span>
+                  <span>4. Memonitor Keaktifan & Perkembangan Proyek</span>
+                  <span>5. Menguji Hasil</span>
+                  <span>6. Evaluasi Pengalaman</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}

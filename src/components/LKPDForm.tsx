@@ -238,8 +238,8 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
         </div>
 
         {/* Row 3: Model Pembelajaran */}
-        <div className="mb-5">
-          <label className="block text-gray-300 text-sm font-medium mb-2">
+        <div className="mb-5 space-y-2">
+          <label className="block text-gray-300 text-sm font-medium">
             Model Pembelajaran
           </label>
           <input
@@ -247,12 +247,45 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
             name="modelPembelajaran"
             value={formData.modelPembelajaran}
             onChange={handleChange}
-            placeholder="Contoh: Discovery Learning, PBL, PjBL, TGT, dll."
+            placeholder="Pilih di bawah atau ketik: Project Based Learning (PjBL), PBL, dll."
             className="w-full bg-[#181f32] border border-gray-700/80 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition-all"
           />
-          <p className="text-xs text-gray-400/80 text-right mt-1.5 font-normal">
-            Ketik manual model pembelajaran yang diinginkan.
-          </p>
+          {/* Quick selection pills */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {[
+              { label: 'Project Based Learning (PjBL)', val: 'Project Based Learning (PjBL)' },
+              { label: 'Problem Based Learning (PBL)', val: 'Problem Based Learning (PBL)' },
+              { label: 'Discovery Learning', val: 'Discovery Learning' },
+              { label: 'Inquiry Learning', val: 'Inquiry Learning' },
+            ].map((m) => {
+              const isSelected = formData.modelPembelajaran?.toLowerCase().includes(m.val.toLowerCase().slice(0, 5));
+              return (
+                <button
+                  key={m.val}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, modelPembelajaran: m.val })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-blue-600/30 text-blue-200 border-blue-500/80'
+                      : 'bg-[#181f32] text-gray-400 border-gray-700/80 hover:border-gray-500 hover:text-white'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {(formData.modelPembelajaran?.toLowerCase().includes('pjbl') ||
+            formData.modelPembelajaran?.toLowerCase().includes('project') ||
+            formData.jenisAktivitas === 'proyek') && (
+            <div className="bg-blue-950/40 border border-blue-500/40 rounded-xl p-3 text-xs text-blue-200 space-y-1">
+              <span className="font-bold text-blue-300">Sintaks PjBL Aktif (6 Tahapan):</span>
+              <p className="text-[11px] text-blue-200/90 font-mono">
+                1. Pertanyaan Mendasar ➔ 2. Mendesain Perencanaan Proyek ➔ 3. Menyusun Jadwal ➔ 4. Memonitor Keaktifan & Perkembangan Proyek ➔ 5. Menguji Hasil ➔ 6. Evaluasi Pengalaman
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Row 3.5: Jenis Aktivitas LKPD */}

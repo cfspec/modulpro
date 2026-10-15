@@ -43,9 +43,9 @@ const getGeminiClient = () => {
 };
 
 // Model for Google AI Studio (Gemini)
-// Menggunakan gemini-3.1-flash-lite sesuai permintaan
+// Menggunakan gemini-3.5-flash sebagai model utama dengan fallback gemini-3.1-flash-lite
 const CANDIDATE_MODELS = [
-  "gemini-3.5-flash",
+  "gemini-3.1-flash-lite",
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -188,6 +188,9 @@ app.post("/api/generate-lkpd", async (req, res) => {
 
     const ai = getGeminiClient();
 
+    const modelNormalized = (modelPembelajaran || '').toLowerCase();
+    const isPjBL = jenisAktivitas === "proyek" || modelNormalized.includes("pjbl") || modelNormalized.includes("project") || modelNormalized.includes("proyek");
+
     let jenisAktivitasText = "";
     let instruksiKhususAktivitas = "";
 
@@ -199,16 +202,22 @@ app.post("/api/generate-lkpd", async (req, res) => {
 - Bagian langkahLangkah harus berupa panduan prosedur kerja ilmiah yang runtut, termasuk daftar alat & bahan yang dibutuhkan, serta langkah-langkah uji coba.
 - Lembar kerja siswa harus berisi pertanyaan yang membimbing siswa menyusun tabel data pengamatan dan menarik kesimpulan berdasarkan data eksperimen tersebut.
       `;
-    } else if (jenisAktivitas === "proyek") {
-      jenisAktivitasText = "Produk / Proyek Kreatif Berkelompok";
+    } else if (isPjBL) {
+      jenisAktivitasText = "Produk / Proyek Kreatif Berkelompok (Project Based Learning - PjBL)";
       instruksiKhususAktivitas = `
-- LKPD ini adalah TIPE PRODUK/PROYEK KREATIF (PjBL).
-- Bagian orientasiMasalah berisi tantangan nyata atau masalah sosial/lingkungan yang harus diselesaikan dengan membuat produk (misalnya: poster, infografis, video edukasi, maket, kampanye sosial, atau produk fisik).
-- Bagian langkahLangkah harus berupa tahapan proyek yang jelas: Pembentukan kelompok, Perencanaan desain/sketsa produk, Jadwal pembuatan, Eksekusi produk, dan Presentasi/Pameran hasil karya.
-- Lembar kerja siswa berisi rancangan rencana kelompok, panduan pembagian peran, checklist progres, dan draf draf rubrik penilaian karya mandiri.
+- LKPD ini adalah TIPE PRODUK/PROYEK KREATIF (PjBL / Project Based Learning).
+- SINTAKS RESMI PjBL WAJIB DITERAPKAN SECARA RUNTUT PADA LANGKAH KEGIATAN & LEMBAR KERJA:
+  1. Pertanyaan Mendasar: Mengemukakan pertanyaan esensial & masalah kontekstual yang memicu ide penciptaan produk/proyek nyata.
+  2. Mendesain Perencanaan Proyek: Merancang rencana proyek, menyusun aturan main kelompok, pembagian tugas peran anggota, serta merinci alat dan bahan.
+  3. Menyusun Jadwal: Membuat tabel timeline atau jadwal batas waktu tahapan pengerjaan proyek hingga selesai.
+  4. Memonitor Keaktifan & Perkembangan Proyek: Guru memonitor keaktifan siswa dan kelompok mengisi checklist progres proyek.
+  5. Menguji Hasil: Menguji kelayakan produk karya, presentasi hasil proyek, serta penilaian rubrik standar kualitas.
+  6. Evaluasi Pengalaman: Refleksi kendala yang dihadapi, solusi pemecahan masalah, dan simpulan pengalaman belajar.
+- Bagian langkahLangkah harus berupa 6 tahapan sintaks PjBL di atas secara berurutan dan jelas.
+- Lembar kerja siswa harus membimbing peserta didik mengerjakan tugas kelompok berbasis tahapan-tahapan PjBL tersebut.
       `;
     } else {
-      jenisAktivitasText = "Konseptual / Diskusi Kasus (Isian)";
+      jenisAktivitasText = "Konseptual / Diskusi Kasus (Problem Based Learning - PBL / Discovery)";
       instruksiKhususAktivitas = `
 - LKPD ini adalah TIPE KONSEPTUAL/DISKUSI KASUS (PBL/Discovery).
 - Bagian orientasiMasalah berisi teks wacana bacaan, studi kasus, atau fenomena kontekstual yang melatih literasi dan penalaran kritis siswa.
@@ -226,7 +235,7 @@ Data Input LKPD:
 - Kelas: Kelas ${kelas || 'Sesuai Fase'} (${fase || 'Fase A/B/C/D/E/F'})
 - Mata Pelajaran: ${mataPelajaran}
 - Materi Pokok / Topik: ${materiPokok}
-- Model Pembelajaran: ${modelPembelajaran || 'Discovery Learning / Problem Based Learning'}
+- Model Pembelajaran: ${modelPembelajaran || (isPjBL ? 'Project Based Learning (PjBL)' : 'Problem Based Learning (PBL)')}
 - Tujuan Pembelajaran (TP): ${tujuanPembelajaran}
 - Tipe LKPD / Jenis Aktivitas: ${jenisAktivitasText}
 
@@ -238,7 +247,7 @@ Persyaratan Regulasi & Struktur LKPD:
 2. Identitas Lengkap (Judul menarik, Sub Judul, Alokasi Waktu misal 2x45 menit, Petunjuk penggunaan yang jelas).
 3. Tujuan Pembelajaran (3-5 poin rasional sesuai TP input).
 4. Materi Ringkas / Orientasi Masalah: Teks wacana kontekstual yang relevan dan dekat dengan kehidupan sehari-hari siswa / Profil Pelajar Pancasila, beserta kata kunci utama.
-5. Kegiatan Siswa berbasis sintaks Model Pembelajaran (${modelPembelajaran || 'PBL/PjBL'}):
+5. Kegiatan Siswa berbasis sintaks Model Pembelajaran (${modelPembelajaran || (isPjBL ? 'PjBL' : 'PBL')}):
    - Lembar Kerja Interaktif berisi 5-7 pertanyaan bertingkat yang membimbing siswa secara kolaboratif atau mandiri.
 6. Soal Refleksi Siswa (3 pertanyaan reflektif).
 7. CATATAN PENTING: DILARANG keras membuat kunci jawaban atau rubrik guru agar output sangat fokus bagi peserta didik dan sangat hemat token.
@@ -383,6 +392,107 @@ app.post("/api/generate-modul", async (req, res) => {
       ? `\n- TUJUAN PEMBELAJARAN (TP) DARI GURU: "${tujuanPembelajaran}". Wajib dicantumkan dan diuraikan ke dalam langkah kegiatan inti dan asesmen.`
       : '\n- TUJUAN PEMBELAJARAN (TP): Susun 3-4 Tujuan Pembelajaran yang spesifik, terukur, berfokus pada HOTS (Analisis, Evaluasi, Kreasi), serta selaras dengan Capaian Pembelajaran Kurikulum Merdeka BSKAP 032/034.';
 
+    const modelRaw = (modelPembelajaran || '').trim();
+    const modelNormalized = modelRaw.toLowerCase();
+    const isPjBL = modelNormalized.includes('pjbl') || modelNormalized.includes('project') || modelNormalized.includes('proyek');
+    const isDiscovery = modelNormalized.includes('discovery');
+    const isInquiry = modelNormalized.includes('inquiry');
+
+    let syntaxInstruction = '';
+    let contohInti: string[] = [];
+
+    if (isPjBL) {
+      syntaxInstruction = `
+ATURAN SINTAKS MUTLAK & WAJIB: MODEL PROJECT BASED LEARNING (PjBL / PJBL)
+Sesuai pedoman baku Kurikulum Merdeka Kemendikbudristek & Kemenag RI, Kegiatan Inti untuk model Project Based Learning (PjBL) WAJIB disusun tepat dalam 6 (enam) tahapan sintaks resmi berikut ini secara runtut dan mendalam:
+1. Pertanyaan Mendasar: Guru mengemukakan pertanyaan esensial / studi kasus nyata terkait "${materiPokok}" yang memicu peserta didik merancang solusi berupa proyek/karya nyata kontekstual.
+2. Mendesain Perencanaan Proyek: Peserta didik berkelompok merancang aturan main proyek, mendesain sketsa/rancangan produk, membagi tugas dan peran anggota, serta merinci alat dan bahan.
+3. Menyusun Jadwal: Guru dan peserta didik menyepakati linimasa (timeline), batas waktu tahapan kegiatan, dan batas akhir penyelesaian proyek karya.
+4. Memonitor Keaktifan & Perkembangan Proyek: Guru memonitor keaktifan peserta didik, membimbing proses pembuatan karya jika ada kendala, dan mencatat progres perkembangan proyek kelompok.
+5. Menguji Hasil: Menguji kelayakan produk karya yang dihasilkan, peserta didik mempresentasikan / memamerkan produk, dan mengukur ketercapaian standar capaian pembelajaran.
+6. Evaluasi Pengalaman: Guru bersama peserta didik melakukan refleksi dan evaluasi terhadap seluruh proses pengalaman pembuatan proyek, mendiskusikan kendala, solusi, serta menarik kesimpulan.
+
+PERINGATAN SANGAT PENTING:
+Setiap butir di dalam array "kegiatanPembelajaran.inti" WAJIB diawali persis dengan penomoran dan nama sintaks tersebut:
+- "1. Pertanyaan Mendasar: [uraian operasional kegiatan guru dan peserta didik terkait ${materiPokok}]"
+- "2. Mendesain Perencanaan Proyek: [uraian perancangan desain, alat-bahan, dan pembagian tugas]"
+- "3. Menyusun Jadwal: [uraian penyusunan jadwal dan timeline pengerjaan proyek]"
+- "4. Memonitor Keaktifan & Perkembangan Proyek: [uraian pemantauan guru dan progres siswa]"
+- "5. Menguji Hasil: [uraian pengujian produk, presentasi/pameran karya, dan evaluasi ketercapaian]"
+- "6. Evaluasi Pengalaman: [uraian refleksi pengalaman, kendala, solusi, dan simpulan]"
+DILARANG keras mengganti sintaks PjBL ini dengan sintaks PBL atau model lain!
+`;
+      contohInti = [
+        `1. Pertanyaan Mendasar: Guru menayangkan video/studi kasus kontekstual tentang ${materiPokok} dan melontarkan pertanyaan mendasar yang menantang peserta didik untuk merancang proyek karya pemecahan masalah.`,
+        `2. Mendesain Perencanaan Proyek: Peserta didik berkolaborasi dalam kelompok merancang rencana proyek, menyepakati aturan kerja sama, membagi peran masing-masing anggota, serta mendata alat dan bahan yang diperlukan.`,
+        `3. Menyusun Jadwal: Guru dan peserta didik menyepakati jadwal pengerjaan proyek (tahap perencanaan, tahap eksekusi, tahap penyelesaian produk, dan waktu presentasi).`,
+        `4. Memonitor Keaktifan & Perkembangan Proyek: Guru memonitor keaktifan dan kerja sama setiap anggota kelompok, memfasilitasi bimbingan teknis jika ada kendala, serta mencatat kemajuan pembuatan proyek.`,
+        `5. Menguji Hasil: Setiap kelompok menguji fungsi dan kelayakan produk karya mereka, lalu mempresentasikan atau mendemonstrasikannya di depan kelas untuk mendapatkan umpan balik dari guru dan rekan.`,
+        `6. Evaluasi Pengalaman: Guru dan peserta didik melakukan refleksi bersama mengenai seluruh pengalaman selama mengerjakan proyek, mengevaluasi kendala yang dihadapi, cara mengatasinya, serta menyimpulkan konsep esensial materi.`
+      ];
+    } else if (isDiscovery) {
+      syntaxInstruction = `
+ATURAN SINTAKS MUTLAK: MODEL DISCOVERY LEARNING
+Kegiatan Inti WAJIB mengikuti 6 sintaks resmi Discovery Learning secara runtut:
+1. Pemberian Rangsangan (Stimulation)
+2. Pernyataan/Identifikasi Masalah (Problem Statement)
+3. Pengumpulan Data (Data Collection)
+4. Pengolahan Data (Data Processing)
+5. Pembuktian (Verification)
+6. Menarik Simpulan/Generalisasi (Generalization)
+Setiap butir dalam array "inti" wajib diawali dengan nama sintaks tersebut.
+`;
+      contohInti = [
+        `1. Pemberian Rangsangan (Stimulation): Guru menyajikan gambar/video fenomena kontekstual tentang ${materiPokok}...`,
+        `2. Pernyataan/Identifikasi Masalah (Problem Statement): Peserta didik mengidentifikasi masalah dan merumuskan hipotesis...`,
+        `3. Pengumpulan Data (Data Collection): Peserta didik mengumpulkan informasi yang relevan melalui literatur / eksperimen...`,
+        `4. Pengolahan Data (Data Processing): Peserta didik mengolah dan menganalisis informasi hasil eksplorasi dalam kelompok...`,
+        `5. Pembuktian (Verification): Peserta didik memverifikasi hasil olah data dengan teori rujukan...`,
+        `6. Menarik Simpulan/Generalisasi (Generalization): Guru dan peserta didik merumuskan kesimpulan umum konsep materi.`
+      ];
+    } else if (isInquiry) {
+      syntaxInstruction = `
+ATURAN SINTAKS MUTLAK: MODEL INQUIRY LEARNING
+Kegiatan Inti WAJIB mengikuti 6 sintaks resmi Inquiry Learning secara runtut:
+1. Orientasi Masalah
+2. Merumuskan Masalah
+3. Merumuskan Hipotesis
+4. Mengumpulkan Data
+5. Menguji Hipotesis
+6. Merumuskan Kesimpulan
+Setiap butir dalam array "inti" wajib diawali dengan nama sintaks tersebut.
+`;
+      contohInti = [
+        `1. Orientasi Masalah: Guru memaparkan situasi ilmiah yang memicu rasa ingin tahu peserta didik...`,
+        `2. Merumuskan Masalah: Peserta didik merumuskan pertanyaan penyelidikan terarah...`,
+        `3. Merumuskan Hipotesis: Peserta didik membuat dugaan jawaban sementara...`,
+        `4. Mengumpulkan Data: Peserta didik melakukan investigasi dan penelusuran data...`,
+        `5. Menguji Hipotesis: Peserta didik menguji kesesuaian dugaan awal dengan data temuan...`,
+        `6. Merumuskan Kesimpulan: Peserta didik menyimpulkan hasil investigasi secara objektif.`
+      ];
+    } else {
+      // Problem Based Learning (PBL)
+      syntaxInstruction = `
+ATURAN SINTAKS MUTLAK: MODEL PROBLEM BASED LEARNING (PBL)
+Kegiatan Inti WAJIB mengikuti 5 sintaks resmi Problem Based Learning (PBL) secara runtut:
+1. Orientasi peserta didik pada masalah: Guru menyajikan masalah kontekstual yang autentik terkait ${materiPokok}.
+2. Mengorganisasikan peserta didik untuk belajar: Peserta didik membentuk kelompok dan merumuskan fokus pemecahan masalah.
+3. Membimbing penyelidikan individu maupun kelompok: Guru membimbing pengumpulan informasi, data, dan kajian teori.
+4. Mengembangkan dan menyajikan hasil karya: Peserta didik menyusun laporan/karya solusi dan mempresentasikannya di depan kelas.
+5. Menganalisis dan mengevaluasi proses pemecahan masalah: Guru dan peserta didik merefleksi serta mengevaluasi efektivitas solusi yang ditemukan.
+Setiap butir dalam array "inti" wajib diawali dengan nama sintaks tersebut.
+`;
+      contohInti = [
+        `1. Orientasi peserta didik pada masalah: Guru menyajikan masalah kontekstual nyata terkait ${materiPokok}...`,
+        `2. Mengorganisasikan peserta didik untuk belajar: Peserta didik membentuk kelompok kerja untuk mendiskusikan tugas pemecahan masalah...`,
+        `3. Membimbing penyelidikan individu maupun kelompok: Guru membimbing peserta didik mengumpulkan informasi dan data referensi...`,
+        `4. Mengembangkan dan menyajikan hasil karya: Peserta didik mengolah hasil analisis dan menyajikan paparan solusi di depan kelas...`,
+        `5. Menganalisis dan mengevaluasi proses pemecahan masalah: Guru dan peserta didik merefleksi dan mengevaluasi hasil diskusi pemecahan masalah.`
+      ];
+    }
+
+    const resolvedModelName = modelRaw || (isPjBL ? 'Project Based Learning (PjBL)' : 'Problem Based Learning (PBL)');
+
     const prompt = `
 Anda adalah Pakar Penyusun Kurikulum Nasional Kemendikbudristek & Kemenag RI (Direktorat KSKK Madrasah & PAI).
 Tugas Anda adalah menyusun dokumen MODUL AJAR KURIKULUM MERDEKA resmi, terstruktur, komprehensif, dan siap cetak sesuai standar format resmi template Modul Ajar.
@@ -397,7 +507,21 @@ DATA INPUT MODUL AJAR:
 - Fase: ${fase || 'Fase D'}
 - Alokasi Waktu: ${alokasiWaktu || '2 x 45 Menit'}${paiElementPrompt}
 - Topik Pembelajaran: ${materiPokok}${tpPrompt}
-- Model Pembelajaran: ${modelPembelajaran || 'Problem Based Learning (PBL) / Discovery Learning'}
+- Model Pembelajaran: ${resolvedModelName}
+
+${syntaxInstruction}
+
+PEDOMAN KELENGKAPAN FORMAT & DETAIL:
+1. "cp": Tuliskan rumusan Capaian Pembelajaran (CP) resmi Kurikulum Merdeka yang relevan untuk mata pelajaran dan fase ini.
+2. "kompetensiAwal": Tuliskan pengetahuan/keterampilan prasyarat siswa yang jelas dan relevan dengan materi ini.
+3. "tujuanPembelajaran": Susun 3-4 Tujuan Pembelajaran berbasis HOTS (C4-C6) menggunakan KKO terukur.
+4. "pemahamanBermakna": Uraikan pemahaman mendalam dan nilai aplikatif materi ini dalam kehidupan sehari-hari (kontekstual).
+5. "pertanyaanPemantik": Susun 2-3 pertanyaan pemantik esensial yang menggugah nalar kritis peserta didik.
+6. "kegiatanPembelajaran":
+   - "pendahuluan": 3 butir (Salam/Doa bersama, Apersepsi kontekstual & motivasi, Penyampaian Tujuan & Pertanyaan Pemantik). Waktu: 15 menit.
+   - "inti": WAJIB mengikuti sintaks model pembelajaran di atas secara urut dan eksplisit! Tuliskan peran aktif guru dan peserta didik secara operasional. Waktu: 60 menit.
+   - "penutup": 3 butir (Kesimpulan bersama siswa, Refleksi proses belajar, Arahan tindak lanjut materi selanjutnya & Doa/Salam). Waktu: 15 menit.
+7. "asesmen": Cantumkan Asesmen Diagnostik (awal), Formatif (proses/observasi sikap/progres), dan Sumatif (akhir/penilaian produk karya proyek jika PjBL atau tes tertulis).
 
 Format JSON harus sesuai persis dengan skema ini:
 {
@@ -410,65 +534,58 @@ Format JSON harus sesuai persis dengan skema ini:
     "kelas": "${kelas || '7'}",
     "fase": "${fase || 'Fase D'}",
     "alokasiWaktu": "${alokasiWaktu || '2 x 45 Menit'}",
-    "cp": "Rumusan Capaian Pembelajaran (CP) resmi Kurikulum Merdeka yang relevan untuk mapel dan fase ini...",
+    "cp": "Rumusan Capaian Pembelajaran resmi...",
     "elemen": "${elemenCPPAI || 'Elemen Capaian Pembelajaran mapel ini'}",
     "topik": "${materiPokok}",
     "materi": "${materiPokok}",
-    "kompetensiAwal": "Uraian pengetahuan/keterampilan awal yang perlu dimiliki peserta didik sebelum mempelajari materi ini...",
-    "prasyarat": "Uraian prasyarat pengetahuan dan keterampilan dasar yang harus dikuasai siswa...",
-    "materiUtama": "Rincian poin-poin materi utama yang dibahas...",
-    "metode": "Diskusi Kelompok, Tanya Jawab, Ceramah Interaktif, Demonstrasi, Presentasi",
+    "kompetensiAwal": "Kompetensi awal yang dimiliki...",
+    "prasyarat": "Prasyarat pengetahuan dasar...",
+    "materiUtama": "Rincian materi utama...",
+    "metode": "Diskusi Kelompok, Eksplorasi, Praktik/Proyek, Presentasi, Refleksi",
     "targetPesertaDidik": "Peserta didik reguler/tipikal dan peserta didik dengan pencapaian tinggi",
     "jumlahSiswa": "Maksimum 36-40 Siswa",
-    "modelPembelajaran": "${modelPembelajaran || 'Problem Based Learning (PBL)'}"
+    "modelPembelajaran": "${resolvedModelName}"
   },
   "komponenInti": {
     "tujuanPembelajaran": [
-      "1. Peserta didik mampu menganalisis...",
-      "2. Peserta didik mampu menjelaskan...",
-      "3. Peserta didik mampu menyajikan..."
+      "1. Peserta didik mampu...",
+      "2. Peserta didik mampu..."
     ],
     "pemahamanBermakna": [
-      "Pemahaman mendalam dan penerapan nyata materi ini dalam kehidupan sehari-hari..."
+      "Pemahaman mendalam materi dalam kehidupan..."
     ],
     "pertanyaanPemantik": [
-      "1. Mengapa materi ini penting dalam kehidupan kita?",
-      "2. Bagaimana sikap kita ketika menghadapi situasi tersebut?"
+      "1. Pertanyaan pemantik esensial...",
+      "2. Pertanyaan pemantik..."
     ],
     "persiapanPembelajaran": [
-      "1. Menyiapkan bahan ajar, slide presentasi, dan LKPD.",
-      "2. Menyiapkan media proyektor, papan tulis, dan kelompok belajar."
+      "1. Menyiapkan bahan ajar, media, dan LKPD.",
+      "2. Menyiapkan sarana, alat bahan, serta pembagian kelompok."
     ],
     "kegiatanPembelajaran": {
       "pendahuluan": [
-        "1. Guru mengucapkan salam dan meminta salah satu siswa memimpin doa.",
-        "2. Guru mengecek kehadiran dan kesiapan belajar siswa.",
-        "3. Guru melakukan apersepsi dan menyampaikan tujuan pembelajaran serta pertanyaan pemantik."
+        "1. Guru mengucapkan salam dan meminta salah satu siswa memimpin doa bersama.",
+        "2. Guru mengecek kehadiran dan kesiapan belajar, lalu memberikan apersepsi kontekstual.",
+        "3. Guru menyampaikan tujuan pembelajaran, alur kegiatan, dan pertanyaan pemantik."
       ],
       "waktuPendahuluan": "15",
-      "inti": [
-        "1. Orientasi peserta didik pada masalah...",
-        "2. Mengorganisasikan peserta didik untuk belajar...",
-        "3. Membimbing penyelidikan individu maupun kelompok...",
-        "4. Mengembangkan dan menyajikan hasil karya / presentasi...",
-        "5. Menganalisis dan mengevaluasi proses pemecahan masalah..."
-      ],
+      "inti": ${JSON.stringify(contohInti, null, 8)},
       "waktuInti": "60",
       "penutup": [
-        "1. Guru bersama peserta didik menyimpulkan poin utama pembelajaran.",
+        "1. Guru bersama peserta didik merumuskan kesimpulan pembelajaran hari ini.",
         "2. Guru dan peserta didik melakukan refleksi proses pembelajaran.",
-        "3. Guru menyampaikan arahan materi pertemuan berikutnya dan menutup dengan doa."
+        "3. Guru menyampaikan arahan tindak lanjut pertemuan berikutnya dan menutup dengan doa serta salam."
       ],
       "waktuPenutup": "15"
     },
     "asesmen": {
-      "diagnostik": "Asesmen non-kognitif (kesiapan belajar) dan kognitif awal sebelum pembelajaran.",
-      "formatif": "Observasi diskusi kelompok, keaktifan bertanya, dan kelengkapan lembar kerja.",
-      "sumatif": "Tes tertulis / penugasan produk di akhir unit materi."
+      "diagnostik": "Asesmen diagnostik non-kognitif (kesiapan belajar) dan kognitif awal sebelum pembelajaran.",
+      "formatif": "Observasi diskusi kelompok, keaktifan bertanya, serta penilaian progres karya/LKPD.",
+      "sumatif": "Penilaian hasil produk akhir proyek (rubrik unjuk kerja) / tes evaluasi materi."
     },
     "pengayaanDanRemedial": {
-      "pengayaan": "Peserta didik yang telah mencapai KKTP diberikan tugas pendalaman berupa analisis kasus nyata / proyek mandiri.",
-      "remedial": "Peserta didik yang belum mencapai KKTP diberikan pembelajaran ulang, bimbingan perorangan, dan tes perbaikan."
+      "pengayaan": "Peserta didik yang telah mencapai KKTP diberikan penugasan pengayaan analisis kasus nyata atau pengembangan karya mandiri.",
+      "remedial": "Peserta didik yang belum mencapai KKTP diberikan bimbingan perorangan terfokus dan pendalaman konsep."
     }
   }
 }
