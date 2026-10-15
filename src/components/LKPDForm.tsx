@@ -37,8 +37,8 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.mataPelajaran || !formData.materiPokok || !formData.tujuanPembelajaran) {
-      alert("Harap lengkapi Mata Pelajaran, Materi Pokok, dan Tujuan Pembelajaran.");
+    if (!formData.mataPelajaran || !formData.materiPokok || !formData.tujuanPembelajaran || !formData.modelPembelajaran?.trim()) {
+      alert("Harap lengkapi Mata Pelajaran, Materi Pokok, Tujuan Pembelajaran, dan Model Pembelajaran.");
       return;
     }
     if (quotaLkpd <= 0) {
@@ -247,7 +247,7 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
             name="modelPembelajaran"
             value={formData.modelPembelajaran}
             onChange={handleChange}
-            placeholder="Pilih di bawah atau ketik: Project Based Learning (PjBL), PBL, dll."
+            placeholder="Pilih model di bawah atau ketik: Project Based Learning (PjBL), PBL, dll."
             className="w-full bg-[#181f32] border border-gray-700/80 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition-all"
           />
           {/* Quick selection pills */}
@@ -257,6 +257,7 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
               { label: 'Problem Based Learning (PBL)', val: 'Problem Based Learning (PBL)' },
               { label: 'Discovery Learning', val: 'Discovery Learning' },
               { label: 'Inquiry Learning', val: 'Inquiry Learning' },
+              { label: 'Cooperative Learning', val: 'Cooperative Learning' },
             ].map((m) => {
               const isSelected = formData.modelPembelajaran?.toLowerCase().includes(m.val.toLowerCase().slice(0, 5));
               return (
@@ -266,7 +267,7 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
                   onClick={() => setFormData({ ...formData, modelPembelajaran: m.val })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-600/30 text-blue-200 border-blue-500/80'
+                      ? 'bg-blue-600/30 text-blue-200 border-blue-500/80 font-bold'
                       : 'bg-[#181f32] text-gray-400 border-gray-700/80 hover:border-gray-500 hover:text-white'
                   }`}
                 >
@@ -276,16 +277,61 @@ export const LKPDForm: React.FC<LKPDFormProps> = ({
             })}
           </div>
 
-          {(formData.modelPembelajaran?.toLowerCase().includes('pjbl') ||
-            formData.modelPembelajaran?.toLowerCase().includes('project') ||
-            formData.jenisAktivitas === 'proyek') && (
-            <div className="bg-blue-950/40 border border-blue-500/40 rounded-xl p-3 text-xs text-blue-200 space-y-1">
-              <span className="font-bold text-blue-300">Sintaks PjBL Aktif (6 Tahapan):</span>
-              <p className="text-[11px] text-blue-200/90 font-mono">
-                1. Pertanyaan Mendasar ➔ 2. Mendesain Perencanaan Proyek ➔ 3. Menyusun Jadwal ➔ 4. Memonitor Keaktifan & Perkembangan Proyek ➔ 5. Menguji Hasil ➔ 6. Evaluasi Pengalaman
-              </p>
-            </div>
-          )}
+          {/* Dynamic Syntax Banner in LKPD */}
+          {(() => {
+            const m = (formData.modelPembelajaran || '').toLowerCase();
+            if (m.includes('pjbl') || m.includes('project') || m.includes('proyek') || formData.jenisAktivitas === 'proyek') {
+              return (
+                <div className="bg-blue-950/40 border border-blue-500/40 rounded-xl p-3 text-xs text-blue-200 space-y-1">
+                  <span className="font-bold text-blue-300">Sintaks Resmi LKPD PjBL (6 Tahapan):</span>
+                  <p className="text-[11px] text-blue-200/90 font-mono">
+                    1. Pertanyaan Mendasar ➔ 2. Mendesain Perencanaan Proyek ➔ 3. Menyusun Jadwal ➔ 4. Memonitor Keaktifan & Perkembangan Proyek ➔ 5. Menguji Hasil ➔ 6. Evaluasi Pengalaman
+                  </p>
+                </div>
+              );
+            }
+            if (m.includes('pbl') || m.includes('problem') || m.includes('masalah')) {
+              return (
+                <div className="bg-indigo-950/40 border border-indigo-500/40 rounded-xl p-3 text-xs text-indigo-200 space-y-1">
+                  <span className="font-bold text-indigo-300">Sintaks Resmi LKPD Problem Based Learning / PBL (5 Tahapan):</span>
+                  <p className="text-[11px] text-indigo-200/90 font-mono">
+                    1. Orientasi Masalah ➔ 2. Mengorganisasikan Belajar ➔ 3. Membimbing Penyelidikan ➔ 4. Mengembangkan Hasil Karya/Solusi ➔ 5. Evaluasi Pemecahan Masalah
+                  </p>
+                </div>
+              );
+            }
+            if (m.includes('discovery') || m.includes('penemuan')) {
+              return (
+                <div className="bg-cyan-950/40 border border-cyan-500/40 rounded-xl p-3 text-xs text-cyan-200 space-y-1">
+                  <span className="font-bold text-cyan-300">Sintaks Resmi LKPD Discovery Learning (6 Tahapan):</span>
+                  <p className="text-[11px] text-cyan-200/90 font-mono">
+                    1. Pemberian Rangsangan (Stimulation) ➔ 2. Identifikasi Masalah ➔ 3. Pengumpulan Data ➔ 4. Pengolahan Data ➔ 5. Pembuktian ➔ 6. Generalisasi
+                  </p>
+                </div>
+              );
+            }
+            if (m.includes('inquiry') || m.includes('inkuiri')) {
+              return (
+                <div className="bg-teal-950/40 border border-teal-500/40 rounded-xl p-3 text-xs text-teal-200 space-y-1">
+                  <span className="font-bold text-teal-300">Sintaks Resmi LKPD Inquiry Learning (6 Tahapan):</span>
+                  <p className="text-[11px] text-teal-200/90 font-mono">
+                    1. Orientasi Masalah ➔ 2. Merumuskan Masalah ➔ 3. Merumuskan Hipotesis ➔ 4. Mengumpulkan Data ➔ 5. Menguji Hipotesis ➔ 6. Merumuskan Kesimpulan
+                  </p>
+                </div>
+              );
+            }
+            if (m.includes('cooperative') || m.includes('kooperatif')) {
+              return (
+                <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-3 text-xs text-emerald-200 space-y-1">
+                  <span className="font-bold text-emerald-300">Sintaks Resmi LKPD Cooperative Learning (6 Fase):</span>
+                  <p className="text-[11px] text-emerald-200/90 font-mono">
+                    1. Orientasi Tujuan & Motivasi ➔ 2. Telaah Informasi ➔ 3. Pembagian Peran Kelompok ➔ 4. Penyelidikan Tim ➔ 5. Evaluasi & Berbagi ➔ 6. Penghargaan Tim
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {/* Row 3.5: Jenis Aktivitas LKPD */}

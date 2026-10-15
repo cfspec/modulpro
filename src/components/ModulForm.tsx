@@ -55,8 +55,8 @@ export const ModulForm: React.FC<ModulFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.mataPelajaran || !formData.materiPokok) {
-      alert("Harap lengkapi Mata Pelajaran dan Topik Pembelajaran.");
+    if (!formData.mataPelajaran || !formData.materiPokok || !formData.modelPembelajaran?.trim()) {
+      alert("Harap lengkapi Mata Pelajaran, Topik Pembelajaran, dan Model Pembelajaran.");
       return;
     }
 
@@ -448,7 +448,7 @@ export const ModulForm: React.FC<ModulFormProps> = ({
               type="text"
               value={formData.modelPembelajaran}
               onChange={(e) => setFormData({ ...formData, modelPembelajaran: e.target.value })}
-              placeholder="Pilih di bawah atau ketik: Project Based Learning (PjBL), PBL, dll"
+              placeholder="Pilih model di bawah atau ketik: Project Based Learning (PjBL), PBL, dll"
               className="w-full bg-[#181f32] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500"
             />
             {/* Quick selection buttons */}
@@ -458,6 +458,7 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                 { label: 'Problem Based Learning (PBL)', val: 'Problem Based Learning (PBL)' },
                 { label: 'Discovery Learning', val: 'Discovery Learning' },
                 { label: 'Inquiry Learning', val: 'Inquiry Learning' },
+                { label: 'Cooperative Learning', val: 'Cooperative Learning' },
               ].map((m) => {
                 const isSelected = formData.modelPembelajaran?.toLowerCase().includes(m.val.toLowerCase().slice(0, 5));
                 return (
@@ -467,7 +468,7 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                     onClick={() => setFormData({ ...formData, modelPembelajaran: m.val })}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
                       isSelected
-                        ? 'bg-purple-600/30 text-purple-200 border-purple-500/80'
+                        ? 'bg-purple-600/30 text-purple-200 border-purple-500/80 font-bold'
                         : 'bg-[#181f32] text-gray-400 border-gray-700/80 hover:border-gray-500 hover:text-white'
                     }`}
                   >
@@ -477,25 +478,100 @@ export const ModulForm: React.FC<ModulFormProps> = ({
               })}
             </div>
 
-            {/* PjBL Highlight Box when selected */}
-            {(formData.modelPembelajaran?.toLowerCase().includes('pjbl') ||
-              formData.modelPembelajaran?.toLowerCase().includes('project') ||
-              formData.modelPembelajaran?.toLowerCase().includes('proyek')) && (
-              <div className="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3 text-xs text-purple-200 space-y-1.5 animate-fadeIn">
-                <div className="flex items-center gap-1.5 font-bold text-purple-300">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Sintaks Resmi PjBL Kurikulum Merdeka (6 Tahap) Diterapkan:</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-purple-200/90 font-mono">
-                  <span>1. Pertanyaan Mendasar</span>
-                  <span>2. Mendesain Perencanaan Proyek</span>
-                  <span>3. Menyusun Jadwal</span>
-                  <span>4. Memonitor Keaktifan & Perkembangan Proyek</span>
-                  <span>5. Menguji Hasil</span>
-                  <span>6. Evaluasi Pengalaman</span>
-                </div>
-              </div>
-            )}
+            {/* Dynamic Model Syntax Preview Banner */}
+            {(() => {
+              const m = (formData.modelPembelajaran || '').toLowerCase();
+              if (m.includes('pjbl') || m.includes('project') || m.includes('proyek')) {
+                return (
+                  <div className="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3 text-xs text-purple-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-purple-300">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Sintaks Resmi Project Based Learning (PjBL) — 6 Tahap:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-purple-200/90 font-mono">
+                      <span>1. Pertanyaan Mendasar</span>
+                      <span>2. Mendesain Perencanaan Proyek</span>
+                      <span>3. Menyusun Jadwal</span>
+                      <span>4. Memonitor Keaktifan & Perkembangan Proyek</span>
+                      <span>5. Menguji Hasil</span>
+                      <span>6. Evaluasi Pengalaman</span>
+                    </div>
+                  </div>
+                );
+              }
+              if (m.includes('pbl') || m.includes('problem') || m.includes('masalah')) {
+                return (
+                  <div className="bg-indigo-950/40 border border-indigo-500/40 rounded-xl p-3 text-xs text-indigo-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-indigo-300">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Sintaks Resmi Problem Based Learning (PBL) — 5 Tahap:</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 text-[11px] text-indigo-200/90 font-mono">
+                      <span>1. Orientasi peserta didik pada masalah</span>
+                      <span>2. Mengorganisasikan peserta didik untuk belajar</span>
+                      <span>3. Membimbing penyelidikan individu maupun kelompok</span>
+                      <span>4. Mengembangkan dan menyajikan hasil karya</span>
+                      <span>5. Menganalisis dan mengevaluasi proses pemecahan masalah</span>
+                    </div>
+                  </div>
+                );
+              }
+              if (m.includes('discovery') || m.includes('penemuan')) {
+                return (
+                  <div className="bg-cyan-950/40 border border-cyan-500/40 rounded-xl p-3 text-xs text-cyan-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-cyan-300">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Sintaks Resmi Discovery Learning — 6 Tahap:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-cyan-200/90 font-mono">
+                      <span>1. Pemberian Rangsangan (Stimulation)</span>
+                      <span>2. Pernyataan/Identifikasi Masalah</span>
+                      <span>3. Pengumpulan Data (Data Collection)</span>
+                      <span>4. Pengolahan Data (Data Processing)</span>
+                      <span>5. Pembuktian (Verification)</span>
+                      <span>6. Menarik Simpulan/Generalisasi</span>
+                    </div>
+                  </div>
+                );
+              }
+              if (m.includes('inquiry') || m.includes('inkuiri')) {
+                return (
+                  <div className="bg-teal-950/40 border border-teal-500/40 rounded-xl p-3 text-xs text-teal-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-teal-300">
+                      <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+                      <span>Sintaks Resmi Inquiry Learning — 6 Tahap:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-teal-200/90 font-mono">
+                      <span>1. Orientasi Masalah</span>
+                      <span>2. Merumuskan Masalah</span>
+                      <span>3. Merumuskan Hipotesis</span>
+                      <span>4. Mengumpulkan Data</span>
+                      <span>5. Menguji Hipotesis</span>
+                      <span>6. Merumuskan Kesimpulan</span>
+                    </div>
+                  </div>
+                );
+              }
+              if (m.includes('cooperative') || m.includes('kooperatif')) {
+                return (
+                  <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-3 text-xs text-emerald-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Sintaks Resmi Cooperative Learning — 6 Fase:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-emerald-200/90 font-mono">
+                      <span>1. Menyampaikan Tujuan & Memotivasi Siswa</span>
+                      <span>2. Menyajikan Informasi (Materi Pengantar)</span>
+                      <span>3. Mengorganisasikan Kelompok Belajar</span>
+                      <span>4. Membimbing Kelompok Belajar & Bekerja</span>
+                      <span>5. Evaluasi (Presentasi / Kuis Tim)</span>
+                      <span>6. Memberikan Penghargaan (Rekognisi)</span>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Submit Button */}
@@ -660,19 +736,91 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                   <p className="text-gray-800 leading-relaxed">{result.informasiUmum?.kompetensiAwal || '-'}</p>
                 </div>
                 <div className="border border-gray-400 p-3 rounded-xs space-y-1">
-                  <h4 className="font-bold text-gray-900">8 Dimensi Profil Lulusan:</h4>
-                  <ol className="list-decimal list-inside text-gray-800 space-y-0.5">
-                    <li>Keimanan & Ketaqwaan</li>
-                    <li>Kewargaan</li>
-                    <li>Penalaran Kritis</li>
-                    <li>Kreativitas</li>
-                    <li>Kolaborasi</li>
-                    <li>Kemandirian</li>
-                    <li>Kesehatan</li>
-                    <li>Komunikasi</li>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-gray-900">8 Dimensi Profil Lulusan:</h4>
+                    <span className="text-[10px] text-[#0f3860] font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                      Fokus Dinamis
+                    </span>
+                  </div>
+                  <ol className="list-decimal list-inside text-gray-800 space-y-1 text-xs">
+                    {[
+                      { name: 'Keimanan & Ketaqwaan', key: 'iman' },
+                      { name: 'Kewargaan', key: 'kewargaan' },
+                      { name: 'Penalaran Kritis', key: 'kritis' },
+                      { name: 'Kreativitas', key: 'kreatif' },
+                      { name: 'Kolaborasi', key: 'kolaborasi' },
+                      { name: 'Kemandirian', key: 'mandiri' },
+                      { name: 'Kesehatan', key: 'kesehatan' },
+                      { name: 'Komunikasi', key: 'komunikasi' },
+                    ].map((item, idx) => {
+                      const isSelected = result.dimensiProfilLulusan?.some(d =>
+                        d.dimensi?.toLowerCase().includes(item.key) ||
+                        item.name.toLowerCase().includes(d.dimensi?.toLowerCase() || '___')
+                      );
+                      return (
+                        <li key={idx} className={isSelected ? "font-bold text-[#0f3860] flex items-center justify-between" : "text-gray-600 flex items-center justify-between"}>
+                          <span>{item.name}</span>
+                          {isSelected ? (
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-medium border border-emerald-300">
+                              ✓ Terintegrasi
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">
+                              Pertemuan lain
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ol>
+                  <p className="text-[10px] text-gray-500 italic pt-1">
+                    *Hanya 2-4 dimensi yang relevan dengan topik ini yang ditargetkan secara terfokus dalam pembelajaran.
+                  </p>
                 </div>
               </div>
+
+              {/* Tabel Integrasi Eksplisit Dimensi Profil Lulusan Terpilih */}
+              {result.dimensiProfilLulusan && result.dimensiProfilLulusan.length > 0 && (
+                <div className="space-y-2 border border-blue-200 bg-blue-50/20 p-3 rounded-xs">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-[#0f3860] text-xs uppercase tracking-wide">
+                      Tabel Integrasi Dimensi Profil Lulusan (Aktivitas & Bukti Asesmen)
+                    </h4>
+                    <span className="text-[10px] bg-[#0f3860] text-white px-2 py-0.5 rounded font-mono">
+                      {result.dimensiProfilLulusan.length} Dimensi Relevan
+                    </span>
+                  </div>
+                  <table className="w-full border-collapse border border-gray-400 text-xs bg-white">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-400">
+                        <th className="p-2 border-r border-gray-400 text-left w-1/5">Dimensi Profil Lulusan</th>
+                        <th className="p-2 border-r border-gray-400 text-left w-1/4">Indikator Perilaku / Kompetensi</th>
+                        <th className="p-2 border-r border-gray-400 text-left w-1/3">Keterkaitan Aktivitas Pembelajaran</th>
+                        <th className="p-2 text-left w-1/4">Bukti Ketercapaian / Asesmen</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.dimensiProfilLulusan.map((dim, idx) => (
+                        <tr key={idx} className="border-b border-gray-400">
+                          <td className="p-2 border-r border-gray-400 font-bold text-gray-900 align-top">
+                            <div className="text-[11px] text-blue-700 font-semibold mb-0.5">Dimensi {idx + 1}</div>
+                            {dim.dimensi}
+                          </td>
+                          <td className="p-2 border-r border-gray-400 align-top text-gray-800 leading-relaxed">
+                            {dim.indikatorPerilaku}
+                          </td>
+                          <td className="p-2 border-r border-gray-400 align-top text-gray-800 leading-relaxed">
+                            {dim.keterkaitanAktivitas}
+                          </td>
+                          <td className="p-2 align-top text-gray-800 leading-relaxed">
+                            {dim.buktiKetercapaian}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {/* Prasyarat Pengetahuan */}
               <div className="space-y-1">
@@ -815,7 +963,15 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                     {/* Note row */}
                     <tr className="border-b border-gray-400 bg-amber-50/50 italic text-[11px] text-gray-700">
                       <td colSpan={2} className="p-2">
-                        Catatan: Selama pembelajaran berlangsung, guru mengamati sikap siswa dalam pembelajaran yang meliputi sikap: disiplin, rasa percaya diri, berperilaku jujur, tangguh menghadapi masalah, tanggung jawab, rasa ingin tahu, peduli lingkungan, dan komunikasi.
+                        {result.dimensiProfilLulusan && result.dimensiProfilLulusan.length > 0 ? (
+                          <span>
+                            <strong>Catatan Pengamatan Guru:</strong> Selama pembelajaran berlangsung, guru secara terfokus mengamati dan menilai indikator perilaku Dimensi Profil Lulusan terpilih ({result.dimensiProfilLulusan.map(d => d.dimensi).join(', ')}) sesuai tahapan aktivitas pembelajaran.
+                          </span>
+                        ) : (
+                          <span>
+                            Catatan: Selama pembelajaran berlangsung, guru mengamati sikap siswa dalam pembelajaran yang meliputi sikap: disiplin, rasa percaya diri, bernalar kritis, kolaborasi, kemandirian, dan komunikasi.
+                          </span>
+                        )}
                       </td>
                     </tr>
 

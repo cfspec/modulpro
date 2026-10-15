@@ -78,6 +78,13 @@ export interface ModulAjarFormData {
   modelPembelajaran: string;
 }
 
+export interface DimensiProfilLulusan {
+  dimensi: string;
+  indikatorPerilaku: string;
+  keterkaitanAktivitas: string;
+  buktiKetercapaian: string;
+}
+
 export interface ModulAjarGenerated {
   informasiUmum: {
     penyusun: string;
@@ -100,6 +107,7 @@ export interface ModulAjarGenerated {
     jumlahSiswa: string;
     modelPembelajaran: string;
   };
+  dimensiProfilLulusan?: DimensiProfilLulusan[];
   komponenInti: {
     tujuanPembelajaran: string[];
     pemahamanBermakna: string[];
