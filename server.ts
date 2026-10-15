@@ -45,7 +45,7 @@ const getGeminiClient = () => {
 // Model for Google AI Studio (Gemini)
 // Menggunakan gemini-3.1-flash-lite sesuai permintaan
 const CANDIDATE_MODELS = [
-  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash",
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
