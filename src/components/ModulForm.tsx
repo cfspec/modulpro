@@ -736,12 +736,7 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                   <p className="text-gray-800 leading-relaxed">{result.informasiUmum?.kompetensiAwal || '-'}</p>
                 </div>
                 <div className="border border-gray-400 p-3 rounded-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-gray-900">8 Dimensi Profil Lulusan:</h4>
-                    <span className="text-[10px] text-[#0f3860] font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                      Fokus Dinamis
-                    </span>
-                  </div>
+                  <h4 className="font-bold text-gray-900">8 Dimensi Profil Lulusan:</h4>
                   <ol className="list-decimal list-inside text-gray-800 space-y-1 text-xs">
                     {[
                       { name: 'Keimanan & Ketaqwaan', key: 'iman' },
@@ -758,24 +753,15 @@ export const ModulForm: React.FC<ModulFormProps> = ({
                         item.name.toLowerCase().includes(d.dimensi?.toLowerCase() || '___')
                       );
                       return (
-                        <li key={idx} className={isSelected ? "font-bold text-[#0f3860] flex items-center justify-between" : "text-gray-600 flex items-center justify-between"}>
-                          <span>{item.name}</span>
-                          {isSelected ? (
-                            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-medium border border-emerald-300">
-                              ✓ Terintegrasi
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-gray-400 italic">
-                              Pertemuan lain
-                            </span>
-                          )}
+                        <li
+                          key={idx}
+                          className={isSelected ? "font-bold text-[#0f3860]" : "text-gray-600 font-normal"}
+                        >
+                          {item.name}
                         </li>
                       );
                     })}
                   </ol>
-                  <p className="text-[10px] text-gray-500 italic pt-1">
-                    *Hanya 2-4 dimensi yang relevan dengan topik ini yang ditargetkan secara terfokus dalam pembelajaran.
-                  </p>
                 </div>
               </div>
 
