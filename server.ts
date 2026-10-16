@@ -1088,6 +1088,263 @@ Hasilkan dokumen LKPD dalam format JSON yang valid sesuai schema di bawah ini.
   }
 });
 
+
+
+// ==========================================
+// RESOLVER KHUSUS MODEL PEMBELAJARAN MODUL AJAR
+// ==========================================
+export interface ModulModelResolutionResult {
+  success: boolean;
+  officialName: string;
+  key?: 'pjbl' | 'pbl' | 'discovery' | 'inquiry' | 'cooperative' | 'tgt';
+  isCustom: boolean;
+  totalSteps: number;
+  syntaxSteps?: string[];
+  syntaxInstruction: string;
+  error?: string;
+}
+
+export function resolveModulAjarModelPembelajaran(
+  modelRaw?: string,
+  materiPokok: string = "materi pokok"
+): ModulModelResolutionResult {
+  const raw = (modelRaw || '').trim();
+  if (!raw) {
+    return {
+      success: false,
+      officialName: '',
+      isCustom: false,
+      totalSteps: 5,
+      syntaxInstruction: '',
+      error: 'Model pembelajaran wajib dipilih atau diisi. Silakan pilih model resmi (PBL, PjBL, Discovery, Inquiry, Cooperative, TGT) atau masukkan model pembelajaran yang diakui dalam literatur pendidikan.'
+    };
+  }
+
+  // 1. Cek terhadap 6 model bawaan resmi
+  const officialRes = resolveModelPembelajaran(raw);
+  if (officialRes.success) {
+    const def = officialRes.definition;
+    return {
+      success: true,
+      officialName: def.officialName,
+      key: def.key,
+      isCustom: false,
+      totalSteps: def.totalSteps,
+      syntaxSteps: def.syntaxSteps,
+      syntaxInstruction: def.syntaxInstructionModul(materiPokok),
+    };
+  }
+
+  // 2. Pemetaan model pedagogis manual yang diakui dalam literatur pendidikan
+  const normalized = raw.toLowerCase().replace(/[-_/]/g, ' ');
+
+  // Direct Instruction / Pengajaran Langsung
+  if (normalized.includes('direct') || normalized.includes('langsung') || normalized.includes('eksplisit') || normalized.includes('explicit')) {
+    const steps = [
+      '1. Menyampaikan Tujuan dan Mempersiapkan Siswa',
+      '2. Mendemonstrasikan Pengetahuan atau Keterampilan (Modeling)',
+      '3. Membimbing Pelatihan (Guided Practice)',
+      '4. Mengecek Pemahaman dan Memberikan Umpan Balik',
+      '5. Memberikan Kesempatan Latihan Mandiri (Independent Practice)'
+    ];
+    return {
+      success: true,
+      officialName: 'Direct Instruction (Pembelajaran Langsung)',
+      isCustom: true,
+      totalSteps: 5,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL DIRECT INSTRUCTION (PEMBELAJARAN LANGSUNG)
+Kegiatan Inti WAJIB mengikuti 5 fase baku Direct Instruction (Arends) secara runtut:
+1. Menyampaikan Tujuan dan Mempersiapkan Siswa: Guru menyampaikan tujuan materi ${materiPokok}, menarik perhatian, dan mengaktifkan skema awal siswa.
+2. Mendemonstrasikan Pengetahuan atau Keterampilan (Modeling): Guru menyajikan materi dan mendemonstrasikan prosedur/keterampilan konsep ${materiPokok} langkah demi langkah secara jelas.
+3. Membimbing Pelatihan (Guided Practice): Guru memberikan latihan terbimbing kepada siswa dengan memberikan scaffolding dan pendampingan bertahap.
+4. Mengecek Pemahaman dan Memberikan Umpan Balik: Guru memeriksa hasil kerja siswa, mengajukan pertanyaan pengecek pemahaman, dan memberikan umpan balik korektif secara langsung.
+5. Memberikan Kesempatan Latihan Mandiri (Independent Practice): Siswa mengerjakan latihan atau tugas penerapan konsep secara mandiri untuk memperkuat retensi belajar.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama fase resmi tersebut.
+`
+    };
+  }
+
+  // Contextual Teaching and Learning (CTL)
+  if (normalized.includes('contextual') || normalized.includes('ctl') || normalized.includes('kontekstual')) {
+    const steps = [
+      '1. Konstruktivisme (Constructivism)',
+      '2. Menemukan (Inquiry / Investigasi Nyata)',
+      '3. Bertanya (Questioning)',
+      '4. Masyarakat Belajar (Learning Community)',
+      '5. Pemodelan (Modeling)',
+      '6. Refleksi (Reflection)',
+      '7. Penilaian Autentik (Authentic Assessment)'
+    ];
+    return {
+      success: true,
+      officialName: 'Contextual Teaching and Learning (CTL)',
+      isCustom: true,
+      totalSteps: 7,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL CONTEXTUAL TEACHING AND LEARNING (CTL)
+Kegiatan Inti WAJIB menerapkan 7 pilar/komponen utama CTL (Sanjaya, Berns & Erickson) terkait materi "${materiPokok}" secara runtut:
+1. Konstruktivisme (Constructivism): Membangun pemahaman mandiri melalui pengalaman nyata siswa seputar ${materiPokok}.
+2. Menemukan (Inquiry / Investigasi): Melakukan penyelidikan atau observasi kontekstual untuk menemukan konsep materi.
+3. Bertanya (Questioning): Mendorong nalar kritis siswa melalui tanya jawab terbimbing dan produktif.
+4. Masyarakat Belajar (Learning Community): Belajar kolaboratif dalam kelompok untuk saling bertukar gagasan kontekstual.
+5. Pemodelan (Modeling): Pemberian contoh konkret atau demonstrasi model oleh guru/ahli.
+6. Refleksi (Reflection): Pengendapan pemahaman atas apa yang telah dipelajari dalam konteks kehidupan nyata.
+7. Penilaian Autentik (Authentic Assessment): Mengukur performa dan aplikasi konsep secara nyata.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama tahapan resmi tersebut.
+`
+    };
+  }
+
+  // Flipped Classroom
+  if (normalized.includes('flipped') || normalized.includes('terbalik')) {
+    const steps = [
+      '1. Penguatan Konsep Pra-Kelas (Pre-Class Learning Review)',
+      '2. Klarifikasi Konsep & Pertanyaan Pemantik Kelas',
+      '3. Pendalaman Masalah & Kolaborasi Interaktif',
+      '4. Aplikasi Konsep / Presentasi Hasil Diskusi',
+      '5. Refleksi & Evaluasi Pemahaman Mendalam'
+    ];
+    return {
+      success: true,
+      officialName: 'Flipped Classroom',
+      isCustom: true,
+      totalSteps: 5,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL FLIPPED CLASSROOM
+Kegiatan Inti WAJIB mengikuti tahapan Flipped Classroom (Bergmann & Sams) di kelas tatap muka terkait "${materiPokok}":
+1. Penguatan Konsep Pra-Kelas: Mengulas intisari materi yang telah dipelajari siswa secara mandiri sebelum kelas.
+2. Klarifikasi Konsep & Pertanyaan Pemantik: Guru mengklarifikasi miskonsepsi dan memantik diskusi mendalam.
+3. Pendalaman Masalah & Kolaborasi Interaktif: Siswa berkolaborasi mengerjakan studi kasus kompleks atau tugas pemecahan masalah bersama kelompok.
+4. Aplikasi Konsep / Presentasi Hasil Diskusi: Kelompok mendemonstrasikan atau menyajikan hasil solusi penerapan konsep.
+5. Refleksi & Evaluasi: Mengukur penguasaan pemahaman mendalam dan menyimpulkan esensi pembelajaran.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama tahapan resmi tersebut.
+`
+    };
+  }
+
+  // Experiential Learning (Kolb)
+  if (normalized.includes('experiential') || normalized.includes('pengalaman') || normalized.includes('kolb')) {
+    const steps = [
+      '1. Pengalaman Konkret (Concrete Experience)',
+      '2. Observasi Reflektif (Reflective Observation)',
+      '3. Konseptualisasi Abstrak (Abstract Conceptualization)',
+      '4. Eksperimentasi Aktif (Active Experimentation)'
+    ];
+    return {
+      success: true,
+      officialName: 'Experiential Learning (Siklus Belajar Kolb)',
+      isCustom: true,
+      totalSteps: 4,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL EXPERIENTIAL LEARNING (KOLB)
+Kegiatan Inti WAJIB mengikuti 4 fase siklus Experiential Learning (David Kolb) terkait materi "${materiPokok}":
+1. Pengalaman Konkret (Concrete Experience): Melibatkan siswa secara langsung dalam pengalaman atau simulasi nyata topik.
+2. Observasi Reflektif (Reflective Observation): Mengamati, memikirkan kembali, dan mendiskusikan apa yang dialami dari berbagai sudut pandang.
+3. Konseptualisasi Abstrak (Abstract Conceptualization): Merumuskan teori, konsep ilmiah, dan prinsip umum dari hasil refleksi.
+4. Eksperimentasi Aktif (Active Experimentation): Menerapkan teori atau solusi baru ke dalam situasi dan masalah praktis lainnya.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama fase resmi tersebut.
+`
+    };
+  }
+
+  // Problem Solving (Polya)
+  if (normalized.includes('problem solving') || normalized.includes('pemecahan masalah') || normalized.includes('polya')) {
+    const steps = [
+      '1. Memahami Masalah (Understanding the Problem)',
+      '2. Merencanakan Penyelesaian (Devising a Plan)',
+      '3. Melaksanakan Rencana (Carrying Out the Plan)',
+      '4. Memeriksa Kembali Hasil (Looking Back / Review)'
+    ];
+    return {
+      success: true,
+      officialName: 'Problem Solving (Metode Polya)',
+      isCustom: true,
+      totalSteps: 4,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL PROBLEM SOLVING (POLYA)
+Kegiatan Inti WAJIB mengikuti 4 tahapan Problem Solving (George Polya) terkait topik "${materiPokok}":
+1. Memahami Masalah: Mengidentifikasi data yang diketahui, data yang dicari, dan kondisi syarat masalah secara kritis.
+2. Merencanakan Penyelesaian: Merumuskan strategi, algoritma, atau skema langkah pemecahan masalah yang efektif.
+3. Melaksanakan Rencana: Menjalankan rencana penyelesaian dengan teliti, menerapkan konsep materi, dan memverifikasi setiap langkah.
+4. Memeriksa Kembali Hasil: Mengevaluasi hasil akhir, mengecek kebenaran solusi, dan merefleksikan alternatif cara penyelesaian lainnya.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama tahapan resmi tersebut.
+`
+    };
+  }
+
+  // Differentiated Learning / Pembelajaran Berdiferensiasi
+  if (normalized.includes('diferensiasi') || normalized.includes('differentiated')) {
+    const steps = [
+      '1. Orientasi Kesiapan & Pemetaan Kebutuhan Belajar Siswa',
+      '2. Eksplorasi Konsep dengan Diferensiasi Konten',
+      '3. Penyelidikan & Aktivitas dengan Diferensiasi Proses (Scaffolding Bertahap)',
+      '4. Gelar Karya / Penyajian Hasil dengan Diferensiasi Produk',
+      '5. Refleksi & Evaluasi Ketercapaian Kompetensi'
+    ];
+    return {
+      success: true,
+      officialName: 'Pembelajaran Berdiferensiasi (Differentiated Instruction)',
+      isCustom: true,
+      totalSteps: 5,
+      syntaxSteps: steps,
+      syntaxInstruction: `
+ATURAN SINTAKS MUTLAK: MODEL PEMBELAJARAN BERDIFERENSIASI
+Kegiatan Inti WAJIB menerapkan pilar Pembelajaran Berdiferensiasi (Tomlinson) terkait materi "${materiPokok}":
+1. Orientasi Kesiapan: Mengidentifikasi profil, minat, atau kesiapan belajar siswa terkait konsep.
+2. Diferensiasi Konten: Menyajikan materi melalui berbagai moda/sumber belajar sesuai kebutuhan keberagaman siswa.
+3. Diferensiasi Proses: Siswa berkolaborasi dengan pendampingan bertingkat (scaffolding bagi yang butuh bantuan, tantangan mandiri bagi pencapaian tinggi).
+4. Diferensiasi Produk: Siswa menyajikan pemahaman dan solusi dalam bentuk karya yang bervariasi namun mengukur capaian kompetensi yang setara.
+5. Refleksi & Evaluasi: Mengukur ketercapaian belajar siswa dan mengevaluasi pengalaman belajar adaptif.
+Setiap butir dalam array "inti" wajib diawali dengan penomoran dan nama tahapan resmi tersebut.
+`
+    };
+  }
+
+  // Validasi keabsahan model manual: pastikan teks masuk akal secara linguistik dan pendidikan
+  const isPlausiblePedagogicalModel = /^[a-zA-Z\s\(\)\/\-\'\.,]{3,80}$/.test(raw) && /[a-zA-Z]{3,}/.test(raw);
+  if (!isPlausiblePedagogicalModel) {
+    return {
+      success: false,
+      officialName: '',
+      isCustom: false,
+      totalSteps: 5,
+      syntaxInstruction: '',
+      error: `Model pembelajaran "${raw}" tidak dikenali sebagai nama model pembelajaran yang valid. Harap gunakan nama model pembelajaran yang diakui dalam literatur pendidikan (contoh: Problem Based Learning, Project Based Learning, Discovery Learning, Inquiry, Cooperative Learning, TGT, Direct Instruction, Contextual Teaching & Learning, Flipped Classroom, dll).`
+    };
+  }
+
+  // Model manual pendidikan yang valid: gunakan nama aslinya, jangan ditukar dengan PBL
+  return {
+    success: true,
+    officialName: raw,
+    isCustom: true,
+    totalSteps: 5,
+    syntaxSteps: [
+      '1. Orientasi & Apersepsi Konseptual',
+      '2. Perencanaan & Pengorganisasian Belajar',
+      '3. Penyelidikan & Eksplorasi Mandiri/Kelompok',
+      '4. Penyajian Hasil & Diskusi Reflektif',
+      '5. Evaluasi & Penarikan Kesimpulan'
+    ],
+    syntaxInstruction: `
+ATURAN KHUSUS MODEL PEMBELAJARAN: "${raw}"
+Guru secara spesifik memilih model pembelajaran mandiri "${raw}".
+KETENTUAN SINTAKS MUTLAK:
+- DILARANG KERAS mengganti atau mengubah nama model "${raw}" ini menjadi PBL, PjBL, atau model lain!
+- Pertahankan nama model "${raw}" di seluruh identitas dan kegiatan modul ajar.
+- Terapkan sintaks/fase autentik dari model "${raw}" sesuai literatur ilmiah ilmu pendidikan yang diakui.
+- Jika model memiliki sintaks khusus dalam literatur, gunakan sintaks tersebut secara runtut.
+- Setiap butir kegiatan inti WAJIB diawali nomor urut dan nama fase/tahapan yang jelas.
+`
+  };
+}
+
 // API Endpoint for generating Modul Ajar
 app.post("/api/generate-modul", async (req, res) => {
   try {
@@ -1112,15 +1369,14 @@ app.post("/api/generate-modul", async (req, res) => {
       });
     }
 
-    // Pemetaan eksplisit model pembelajaran (Mencegah silent fallback ke PBL)
-    const modelResolution = resolveModelPembelajaran(modelPembelajaran);
+    // Resolusi model pembelajaran khusus Modul Ajar (Mendukung 6 model resmi + model manual sah tanpa silent PBL fallback)
+    const modelResolution = resolveModulAjarModelPembelajaran(modelPembelajaran, materiPokok);
     if (!modelResolution.success) {
       return res.status(400).json({
         error: modelResolution.error,
       });
     }
 
-    const modelDef = modelResolution.definition;
     const ai = getGeminiClient();
 
     const paiElementPrompt = elemenCPPAI && elemenCPPAI.trim() !== ''
@@ -1128,14 +1384,13 @@ app.post("/api/generate-modul", async (req, res) => {
       : '';
 
     const tpPrompt = tujuanPembelajaran && tujuanPembelajaran.trim() !== ''
-      ? `\n- TUJUAN PEMBELAJARAN (TP) DARI GURU: "${tujuanPembelajaran}". Wajib dicantumkan dan diuraikan ke dalam langkah kegiatan inti dan asesmen.`
+      ? `\n- TUJUAN PEMBELAJARAN (TP) DARI GURU: "${tujuanPembelajaran}". Wajib diuraikan ke dalam langkah kegiatan inti dan dihubungkan secara nyata dengan asesmen formatif & sumatif.`
       : '\n- TUJUAN PEMBELAJARAN (TP): Susun 3-4 Tujuan Pembelajaran yang spesifik, terukur, berfokus pada HOTS (Analisis, Evaluasi, Kreasi), serta selaras dengan Capaian Pembelajaran Kurikulum Merdeka BSKAP 032/034.';
 
     const timeDist = calculateTimeDistribution(alokasiWaktu, tingkatSekolah);
-    const syntaxInstruction = modelDef.syntaxInstructionModul(materiPokok);
-    const contohInti = modelDef.contohIntiModul(materiPokok);
-    const resolvedModelName = modelDef.officialName;
-    const avgMinutesPerStep = Math.round(parseInt(timeDist.waktuInti, 10) / modelDef.totalSteps);
+    const syntaxInstruction = modelResolution.syntaxInstruction;
+    const resolvedModelName = modelResolution.officialName;
+    const totalSyntaxSteps = modelResolution.totalSteps;
 
     const prompt = `
 Anda adalah Pakar Penyusun Kurikulum Nasional Kemendikbudristek & Kemenag RI (Direktorat KSKK Madrasah & PAI).
@@ -1152,45 +1407,47 @@ DATA INPUT MODUL AJAR:
 - Alokasi Waktu Input Guru: ${alokasiWaktu || `${timeDist.totalMinutes} Menit`}${paiElementPrompt}
 - Total Waktu Pembelajaran: ${timeDist.totalMinutes} Menit
 - Topik Pembelajaran: ${materiPokok}${tpPrompt}
-- Model Pembelajaran Terpilih: ${resolvedModelName}
+- Model Pembelajaran Terpilih: ${resolvedModelName} (Wajib ${totalSyntaxSteps} Tahapan Sintaks)
 
 ${syntaxInstruction}
 
-PEDOMAN PERHITUNGAN ALOKASI WAKTU DINAMIS (ANTI LOCK 15-60-15):
-Total waktu pembelajaran adalah ${timeDist.totalMinutes} menit (berdasarkan input guru: "${alokasiWaktu || `${timeDist.totalMinutes} Menit`}").
-DILARANG mengunci mati waktu ke 15-60-15 jika alokasi waktu guru berbeda! Wajib membagi waktu proporsional sebagai berikut:
+PEDOMAN DISTRIBUSI ALOKASI WAKTU FLEKSIBEL (ANTI-LOCK & ANTI-EQUAL SPLIT):
+Total waktu pembelajaran adalah ${timeDist.totalMinutes} menit:
 - Kegiatan Pendahuluan: tepat ${timeDist.waktuPendahuluan} menit.
-- Kegiatan Inti: tepat ${timeDist.waktuInti} menit. Wajib dibagi secara proporsional ke dalam tepat ${modelDef.totalSteps} tahap sintaks ${resolvedModelName} (rata-rata ~${avgMinutesPerStep} menit per sintaks). Pada uraian setiap sintaks inti, cantumkan alokasi waktu spesifiknya!
+- Kegiatan Inti: tepat ${timeDist.waktuInti} menit.
+  * PERINGATAN: DILARANG membagi rata alokasi waktu secara otomatis (misal membagi rata sama menit untuk semua tahap)!
+  * Wajib membagi waktu secara FLEKSIBEL dan REALISTIS mengikuti karakteristik tahapan model '${resolvedModelName}':
+    - Tahap awal yang bersifat orientasi/stimulus/pengenalan masalah dialokasikan lebih singkat dan padat (misal 5-10 menit).
+    - Tahap utama penyelidikan mendalam, eksplorasi data, pembuatan produk/proyek karya, atau turnamen akademik WAJIB mendapatkan porsi alokasi waktu terbesar yang memadai (misal 20-35 menit).
+    - Tahap penyajian hasil / uji produk dan evaluasi / refleksi proses dialokasikan proporsional (misal 10-15 menit).
+  * Pada setiap butir sintaks inti, cantumkan alokasi menit spesifiknya dalam tanda kurung, misal: "1. [Nama Sintaks] (... menit): ...".
+  * KETENTUAN MATEMATIS WAJIB: Jumlah menit seluruh tahapan sintaks inti jika dijumlahkan WAJIB TEPAT sama dengan ${timeDist.waktuInti} menit!
 - Kegiatan Penutup: tepat ${timeDist.waktuPenutup} menit.
 Total: ${timeDist.waktuPendahuluan} + ${timeDist.waktuInti} + ${timeDist.waktuPenutup} = ${timeDist.totalMinutes} menit.
 
+PEDOMAN KUALITAS KEGIATAN INTI OPERASIONAL (3 ELEMEN WAJIB):
+Setiap butir di dalam array "kegiatanPembelajaran.inti" WAJIB memuat 3 elemen terpadu secara konkret, kontekstual sesuai materi "${materiPokok}", dan sesuai jenjang ${tingkatSekolah || 'sekolah'}:
+1. [Nomor & Nama Sintaks] (Alokasi Menit):
+   - Kegiatan Guru: Uraikan peran aktif guru secara nyata (memfasilitasi pertanyaan pemantik, memandu scaffolding kelompok, mendampingi penyelidikan, mengobservasi ketercapaian). DILARANG menulis kalimat umum klise seperti "Guru menjelaskan materi"!
+   - Kegiatan Peserta Didik: Uraikan tindakan operasional siswa secara aktif (mengamati studi kasus kontekstual, mendiskusikan data, merancang sketsa/solusi karya, mempresentasikan temuan).
+   - Bukti / Hasil Belajar: Sebutkan artefak nyata atau bukti ketercapaian belajar yang dihasilkan pada tahap ini (misal: rumusan hipotesis tertulis, tabel pengamatan data terisi, draf linimasa kerja, prototipe karya, atau lembar simpulan).
+
+PEDOMAN PENYELARASAN TUJUAN PEMBELAJARAN DENGAN ASESMEN:
+Setiap Tujuan Pembelajaran (TP) yang dirumuskan WAJIB didukung dan selaras dengan:
+1. Aktivitas operasional di Kegiatan Inti tempat kompetensi tersebut dilatihkan.
+2. Rancangan Asesmen pada bagian "asesmen":
+   - "diagnostik": Asesmen awal (non-kognitif kesiapan belajar dan kognitif materi prasyarat) khusus topik "${materiPokok}".
+   - "formatif": Asesmen proses selama kegiatan inti berlangsung untuk memantau pencapaian TP dan Dimensi Profil Lulusan terpilih, dilengkapi teknik asesmen (observasi unjuk kerja, ceklis partisipasi kelompok, lembar telaah sejawat) dan instrumen yang digunakan guru.
+   - "sumatif": Asesmen akhir untuk mengukur ketercapaian Tujuan Pembelajaran (tes tertulis bertingkat C4-C6 HOTS / penilaian unjuk kerja produk) lengkap dengan instrumen dan kriteria ketercapaian yang relevan dengan rancangan asesmen tersebut.
+
 PEDOMAN INTEGRASI EKSPLISIT 8 DIMENSI PROFIL LULUSAN:
-8 Dimensi Profil Lulusan resmi:
-1. Keimanan & Ketaqwaan (Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia)
-2. Kewargaan (Kewargaan Global, Toleransi, Cinta Tanah Air)
-3. Penalaran Kritis (Bernalar Kritis, Pemecahan Masalah Objektif)
-4. Kreativitas (Kreatif, Gagasan Orisinal, Karya Inovatif)
-5. Kolaborasi (Bergotong Royong, Kerja Sama Tim, Kepedulian)
-6. Kemandirian (Mandiri, Tanggung Jawab Belajar, Manajemen Diri)
-7. Kesehatan (Kesehatan & Kebugaran Jasmani-Rohani, Integritas Fisik)
-8. Komunikasi (Komunikasi Efektif, Literasi, Penyampaian Ide Terstruktur)
-
-ATURAN INTEGRASI DIMENSI:
-- JANGAN memaksakan seluruh 8 dimensi muncul sekaligus dalam 1 pertemuan!
-- Pilih secara selektif 2 HINGGA 4 DIMENSI YANG PALING RELEVAN dengan mata pelajaran "${mataPelajaran}", materi "${materiPokok}", model "${resolvedModelName}", dan Tujuan Pembelajaran.
-- Pada bagian "dimensiProfilLulusan", sajikan array objek dengan 4 elemen kunci untuk setiap dimensi terpilih:
-  1. "dimensi": Nama dimensi yang dipilih dari 8 dimensi di atas.
-  2. "indikatorPerilaku": Indikator perilaku konkret atau kompetensi yang diharapkan muncul pada peserta didik selama topik ini.
-  3. "keterkaitanAktivitas": Keterkaitan langsung dengan tahapan sintaks kegiatan pembelajaran ${resolvedModelName} (pada tahap sintaks mana dimensi ini dilatih dan dipraktikkan).
-  4. "buktiKetercapaian": Bukti ketercapaian dan teknik asesmen yang dapat diobservasi guru (misal: lembar observasi partisipasi kelompok, rubrik presentasi produk, analisis LKPD, catatan refleksi).
-
-PEDOMAN KELENGKAPAN FORMAT & DETAIL LAINNYA:
-1. "cp": Tuliskan rumusan Capaian Pembelajaran (CP) resmi Kurikulum Merdeka yang relevan untuk mata pelajaran dan fase ini.
-2. "kompetensiAwal": Tuliskan pengetahuan/keterampilan prasyarat siswa yang jelas dan relevan dengan materi ini.
-3. "tujuanPembelajaran": Susun 3-4 Tujuan Pembelajaran berbasis HOTS (C4-C6) menggunakan KKO terukur.
-4. "pemahamanBermakna": Uraikan pemahaman mendalam dan nilai aplikatif materi ini dalam kehidupan sehari-hari (kontekstual).
-5. "pertanyaanPemantik": Susun 2-3 pertanyaan pemantik esensial yang menggugah nalar kritis peserta didik.
-6. "asesmen": Cantumkan Asesmen Diagnostik (awal), Formatif (proses/observasi sikap/progres mengacu pada dimensi profil lulusan terpilih), dan Sumatif (akhir/penilaian produk proyek jika PjBL atau tes tertulis).
+Pilih secara selektif 2 HINGGA 4 DIMENSI YANG PALING RELEVAN dengan materi "${materiPokok}", model "${resolvedModelName}", dan Tujuan Pembelajaran dari 8 Dimensi Resmi:
+1. Keimanan & Ketaqwaan, 2. Kewargaan, 3. Penalaran Kritis, 4. Kreativitas, 5. Kolaborasi, 6. Kemandirian, 7. Kesehatan, 8. Komunikasi.
+Sajikan array objek pada "dimensiProfilLulusan" dengan 4 elemen kunci:
+1. "dimensi": Nama dimensi terpilih.
+2. "indikatorPerilaku": Indikator perilaku konkret peserta didik selama mempelajari materi ini.
+3. "keterkaitanAktivitas": Keterkaitan langsung dengan tahapan sintaks kegiatan pembelajaran ${resolvedModelName}.
+4. "buktiKetercapaian": Bukti ketercapaian dan teknik asesmen yang diobservasi guru.
 
 Format JSON harus sesuai persis dengan skema ini:
 {
@@ -1220,13 +1477,13 @@ Format JSON harus sesuai persis dengan skema ini:
       "dimensi": "Penalaran Kritis",
       "indikatorPerilaku": "Peserta didik mampu mengidentifikasi masalah, menganalisis data, dan menarik kesimpulan logis...",
       "keterkaitanAktivitas": "Dilatih pada sintaks Inti tahap penyelidikan dan analisis data konsep ${materiPokok}...",
-      "buktiKetercapaian": "Kesesuaian analisis pada LKPD dan keaktifan memberikan argumentasi logis saat diskusi."
+      "buktiKetercapaian": "Kesesuaian analisis pada lembar kerja dan keaktifan memberikan argumentasi logis saat diskusi."
     },
     {
       "dimensi": "Kolaborasi",
       "indikatorPerilaku": "Peserta didik aktif bergotong royong, berbagi peran secara adil dalam kelompok, dan saling menghargai gagasan...",
-      "keterkaitanAktivitas": "Dipraktikkan pada sintaks Inti saat kerja kelompok menyelesaikan tugas/proyek...",
-      "buktiKetercapaian": "Rubrik observasi kerjasama tim dan lembar penilaian antar-teman (peer-assessment)."
+      "keterkaitanAktivitas": "Dipraktikkan pada sintaks Inti saat kerja kelompok menyelesaikan tugas/karya...",
+      "buktiKetercapaian": "Rubrik observasi kerjasama tim dan lembar penilaian antar-teman."
     }
   ],
   "komponenInti": {
@@ -1235,7 +1492,7 @@ Format JSON harus sesuai persis dengan skema ini:
       "2. Peserta didik mampu..."
     ],
     "pemahamanBermakna": [
-      "Pemahaman mendalam materi dalam kehidupan..."
+      "Pemahaman mendalam materi dalam kehidupan kontekstual..."
     ],
     "pertanyaanPemantik": [
       "1. Pertanyaan pemantik esensial...",
@@ -1248,11 +1505,14 @@ Format JSON harus sesuai persis dengan skema ini:
     "kegiatanPembelajaran": {
       "pendahuluan": [
         "1. Guru mengucapkan salam dan meminta salah satu siswa memimpin doa bersama.",
-        "2. Guru mengecek kehadiran dan kesiapan belajar, lalu memberikan apersepsi kontekstual.",
+        "2. Guru mengecek kehadiran dan kesiapan belajar, lalu memberikan apersepsi kontekstual seputar ${materiPokok}.",
         "3. Guru menyampaikan tujuan pembelajaran, alur kegiatan, dan pertanyaan pemantik."
       ],
       "waktuPendahuluan": "${timeDist.waktuPendahuluan}",
-      "inti": ${JSON.stringify(contohInti, null, 8)},
+      "inti": [
+        "1. [Nama Sintaks 1] (... menit): Kegiatan Guru: ... | Kegiatan Peserta Didik: ... | Bukti Belajar: ...",
+        "2. [Nama Sintaks 2] (... menit): Kegiatan Guru: ... | Kegiatan Peserta Didik: ... | Bukti Belajar: ..."
+      ],
       "waktuInti": "${timeDist.waktuInti}",
       "penutup": [
         "1. Guru bersama peserta didik merumuskan kesimpulan pembelajaran hari ini.",
@@ -1262,9 +1522,9 @@ Format JSON harus sesuai persis dengan skema ini:
       "waktuPenutup": "${timeDist.waktuPenutup}"
     },
     "asesmen": {
-      "diagnostik": "Asesmen diagnostik non-kognitif (kesiapan belajar) dan kognitif awal sebelum pembelajaran.",
-      "formatif": "Observasi proses diskusi kelompok, keaktifan bertanya, serta rubrik observasi sikap dimensi profil lulusan terpilih.",
-      "sumatif": "Penilaian hasil produk akhir proyek (rubrik unjuk kerja) / tes evaluasi materi bertingkat HOTS."
+      "diagnostik": "Asesmen diagnostik non-kognitif (kesiapan belajar) dan kognitif awal sebelum pembelajaran terkait konsep dasar ${materiPokok}.",
+      "formatif": "Observasi proses kerja kelompok, keaktifan berdiskusi, serta rubrik observasi sikap dimensi profil lulusan terpilih selama kegiatan inti.",
+      "sumatif": "Penilaian ketercapaian Tujuan Pembelajaran melalui tes evaluasi tertulis bertingkat HOTS / unjuk kerja produk karya disertai kriteria penilaian yang jelas."
     },
     "pengayaanDanRemedial": {
       "pengayaan": "Peserta didik yang telah mencapai KKTP diberikan penugasan pengayaan analisis kasus nyata atau pengembangan karya mandiri.",
@@ -1286,15 +1546,19 @@ Catatan Hemat Token: TIDAK PERLU membuat atau menghasilkan bagian lampiran (sepe
     const text = response.text || "{}";
     const resultData = JSON.parse(text);
 
-    // Pastikan struktur komponenInti dan kegiatanPembelajaran selalu lengkap
-    if (!resultData.komponenInti) {
+    // =========================================================================
+    // VALIDASI KUALITAS & NORMALISASI TERARAH MODUL AJAR (COMPATIBILITY & AUDIT)
+    // =========================================================================
+
+    // 1. Pastikan struktur komponenInti dan kegiatanPembelajaran selalu lengkap
+    if (!resultData.komponenInti || typeof resultData.komponenInti !== "object") {
       resultData.komponenInti = {} as any;
     }
-    if (!resultData.komponenInti.kegiatanPembelajaran) {
+    if (!resultData.komponenInti.kegiatanPembelajaran || typeof resultData.komponenInti.kegiatanPembelajaran !== "object") {
       resultData.komponenInti.kegiatanPembelajaran = {} as any;
     }
 
-    // Penegakan Alokasi Waktu Dinamis (Anti lock 15-60-15)
+    // 2. Penegakan Alokasi Waktu Dinamis (Anti lock 15-60-15)
     resultData.komponenInti.kegiatanPembelajaran.waktuPendahuluan =
       resultData.komponenInti.kegiatanPembelajaran.waktuPendahuluan || timeDist.waktuPendahuluan;
     resultData.komponenInti.kegiatanPembelajaran.waktuInti =
@@ -1302,13 +1566,48 @@ Catatan Hemat Token: TIDAK PERLU membuat atau menghasilkan bagian lampiran (sepe
     resultData.komponenInti.kegiatanPembelajaran.waktuPenutup =
       resultData.komponenInti.kegiatanPembelajaran.waktuPenutup || timeDist.waktuPenutup;
 
-    // Pastikan identitas modul konsisten
-    if (resultData.informasiUmum) {
-      resultData.informasiUmum.modelPembelajaran = resolvedModelName;
-      resultData.informasiUmum.alokasiWaktu = alokasiWaktu || `${timeDist.totalMinutes} Menit`;
+    // Normalisasi array inti: pastikan ada isinya dan valid
+    if (!Array.isArray(resultData.komponenInti.kegiatanPembelajaran.inti) || resultData.komponenInti.kegiatanPembelajaran.inti.length === 0) {
+      if (modelResolution.syntaxSteps && modelResolution.syntaxSteps.length > 0) {
+        resultData.komponenInti.kegiatanPembelajaran.inti = modelResolution.syntaxSteps.map((stepName, idx) => {
+          return `${stepName}: Kegiatan Guru memfasilitasi pendalaman konsep ${materiPokok} | Kegiatan Peserta Didik berkolaborasi aktif menyelesaikan penugasan | Bukti Belajar berupa catatan analisis dan hasil kerja kelompok.`;
+        });
+      } else {
+        resultData.komponenInti.kegiatanPembelajaran.inti = [
+          `1. Orientasi & Apersepsi: Kegiatan Guru memberikan pengantar kontekstual topik ${materiPokok} | Kegiatan Peserta Didik merumuskan pertanyaan | Bukti Belajar berupa catatan pemantik.`,
+          `2. Eksplorasi & Investigasi: Kegiatan Guru mendampingi kelompok | Kegiatan Peserta Didik melakukan penyelidikan konsep | Bukti Belajar berupa tabel data pengamatan.`,
+          `3. Diskusi & Presentasi: Kegiatan Guru memandu presentasi | Kegiatan Peserta Didik menyajikan hasil karya | Bukti Belajar berupa paparan karya kelompok.`,
+          `4. Evaluasi & Kesimpulan: Kegiatan Guru mengkonfirmasi pemahaman | Kegiatan Peserta Didik menyimpulkan materi | Bukti Belajar berupa resume pembelajaran.`
+        ];
+      }
     }
 
-    // Penegakan Integrasi Eksplisit 8 Dimensi Profil Lulusan (Fallback jaminan jika kosong)
+    // 3. Pastikan identitas modul konsisten
+    if (!resultData.informasiUmum || typeof resultData.informasiUmum !== "object") {
+      resultData.informasiUmum = {} as any;
+    }
+    resultData.informasiUmum.penyusun = resultData.informasiUmum.penyusun || (namaGuru || 'Guru Pengampu');
+    resultData.informasiUmum.instansi = resultData.informasiUmum.instansi || (sekolah || 'Satuan Pendidikan');
+    resultData.informasiUmum.tahun = resultData.informasiUmum.tahun || (tahunPembuatan || '2026');
+    resultData.informasiUmum.mapel = resultData.informasiUmum.mapel || mataPelajaran;
+    resultData.informasiUmum.jenjang = resultData.informasiUmum.jenjang || (tingkatSekolah || 'SMP/MTs');
+    resultData.informasiUmum.kelas = resultData.informasiUmum.kelas || (kelas || '7');
+    resultData.informasiUmum.fase = resultData.informasiUmum.fase || (fase || 'Fase D');
+    resultData.informasiUmum.topik = resultData.informasiUmum.topik || materiPokok;
+    resultData.informasiUmum.materi = resultData.informasiUmum.materi || materiPokok;
+    resultData.informasiUmum.modelPembelajaran = resolvedModelName;
+    resultData.informasiUmum.alokasiWaktu = alokasiWaktu || `${timeDist.totalMinutes} Menit`;
+
+    // 4. Penegakan Asesmen & Penyelarasan
+    if (!resultData.komponenInti.asesmen || typeof resultData.komponenInti.asesmen !== "object") {
+      resultData.komponenInti.asesmen = {
+        diagnostik: `Asesmen diagnostik non-kognitif (kesiapan belajar) dan kognitif awal sebelum pembelajaran mengenai pemahaman awal topik ${materiPokok}.`,
+        formatif: `Observasi proses keterlibatan diskusi kelompok, keaktifan penalaran kritis, serta rubrik observasi sikap profil lulusan selama kegiatan inti.`,
+        sumatif: `Penilaian ketercapaian Tujuan Pembelajaran melalui evaluasi tes bertingkat HOTS / unjuk kerja produk karya materi ${materiPokok}.`
+      };
+    }
+
+    // 5. Penegakan Integrasi Eksplisit 8 Dimensi Profil Lulusan (Fallback jaminan jika kosong)
     if (!Array.isArray(resultData.dimensiProfilLulusan) || resultData.dimensiProfilLulusan.length === 0) {
       resultData.dimensiProfilLulusan = [
         {
@@ -1318,8 +1617,8 @@ Catatan Hemat Token: TIDAK PERLU membuat atau menghasilkan bagian lampiran (sepe
           buktiKetercapaian: `Lembar kerja peserta didik (LKPD) terisi dengan penalaran logis dan keaktifan bertanya analitis.`
         },
         {
-          dimensi: modelDef.key === 'pjbl' || modelDef.key === 'cooperative' ? "Kolaborasi" : "Kemandirian",
-          indikatorPerilaku: modelDef.key === 'pjbl' || modelDef.key === 'cooperative'
+          dimensi: modelResolution.key === 'pjbl' || modelResolution.key === 'cooperative' ? "Kolaborasi" : "Kemandirian",
+          indikatorPerilaku: modelResolution.key === 'pjbl' || modelResolution.key === 'cooperative'
             ? "Membangun kerja sama tim yang solid, berbagi peran secara adil, dan saling mengapresiasi pendapat rekan sekelompok."
             : "Mengelola proses belajar mandiri, menunjukkan disiplin belajar, dan bertanggung jawab terhadap target pencapaian tugas.",
           keterkaitanAktivitas: `Dilatih pada tahapan kegiatan inti saat eksplorasi mandiri/kelompok dan perumusan hasil belajar.`,
